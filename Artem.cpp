@@ -18,6 +18,7 @@ struct boughtitem {
 };
 
 
+
 void rsp()
 {
     std::string usertool;
