@@ -14,10 +14,22 @@ struct room {
 	std::vector<std::string>items;
 };
 
+struct useResult {
+	std::string start;
+	std::string end;
+};
+
+struct combineResult {
+	std::string item1;
+	std::string item2;
+	std::string result;
+};
+
 int main()
 {
-	enum { sweet, pelmeni, carrot, apple, cucumber, water, milk, jam, noodles, beer, key };
-	std::string itemname[11] = { "sweet", "pelmeni", "carrot", "apple", "cucumber", "water", "milk", "jam", "noodles", "beer", "key" };
+	//enum { chocolate, pelmeni, carrot, apple, tomato, water, milk, jam, noodles, sauce, fish, lemon, key };
+	std::string itemname[11] = { "chocolate", "frozenPelmeni", "carrot", "apple", "tomato", "water", "milk", "jam", "dryNoodles", "sauce", "key" };
+	int react[11] = { 4, 1, 3, 3, 2, 2, 3, 3, 2, 2, 1 };
 	room list[13];
 	list[0] = { "oven","cooks food" };
 	list[1] = { "stove","also cooks food, but differently" };
@@ -37,21 +49,31 @@ int main()
 	list[2].doors = { { "fridge-oven",0 },{ "fridge-kitchenHall",4 } };
 	list[2].items = { itemname[4], itemname[3], itemname[6] };
 	list[3].doors = { { "closet-stove",1 },{ "closet-kitchenHall",4 } };
-	list[3].items = { itemname[1], itemname[8] };
+	list[3].items = { itemname[3], itemname[8] };
 	list[4].doors = { { "kitchenHall-oven",0 },{ "kitchenHall-stove",1 },{"kitchenHall-fridge",2},{"kitchenHall-closet",3},{"kitchenHall-hall",5},
 		{"kitchenHall-storageRoom",7},{"kitchenHall-man",12}};
 	list[4].items = { itemname[0] };
 	list[5].doors = { { "hall-kitchenHall",4 },{ "hall-exit",6 } };
-	list[5].items = { itemname[10] };
+	list[5].items = { itemname[12] };
 	list[6].doors = { { "exit-hall",5 } };
+	list[7].doors = { { "storageRoom-kitchenHall",4 },{ "storageRoom-pool",8 },{"storageRoom-closet1",9},{"storageRoom-closet2",10},{"storageRoom-iceRoom",11} };
+	list[7].items = { itemname[0] };
+	list[8].doors = { { "pool-storageRoom",7 } };
+	list[8].items = { itemname[5] };
+	list[9].doors = { { "closet1-storageRoom",7 },{ "closet1-closet2",10}};
+	list[9].items = { itemname[7], itemname[9] };
+	list[10].doors = { { "closet2-storageRoom",7 },{ "closet2-closet1",9} };
+	list[10].items = { itemname[2], itemname[11] };
+	list[11].doors = { { "iceRoom-storageRoom",7 } };
+	list[11].items = { itemname[1], itemname[10] };
+	list[12].doors = { { "man-kitchenHall",4 } };
 	int choice = 0;
 	int hp = 41;
 	std::vector<std::string>myItems = {};
 	std::string command;
 	int feed = 0;
 	std::cout << "you wake up in the kitchen of some fat guy's house and are told to feed him something" << std::endl;
-	while (command != "out") {
-		//while (choice != 13 || hp > 0 || feed < 50)
+	while (choice != 13 || hp > 0 || feed < 50) {
 		std::cout << "you are in " << list[choice].name << std::endl;
 		std::cin >> command;
 		if (command == "go") {
@@ -59,7 +81,18 @@ int main()
 			for (int i = 0; i < list[choice].doors.size(); i++) {
 				std::cout << list[choice].doors[i].target << " - " << list[list[choice].doors[i].target].name << std::endl;
 			}
+			int choiceOld = choice;
 			std::cin >> choice;
+			for (int i = 0; i < list[choiceOld].doors.size(); i++) {
+				int counter = 0;
+				if (choice == list[choiceOld].doors[i].target) {
+					counter++;
+				}
+			}
+			if (counter == 0) {
+				choice == choiceOld;
+				std::cout << "you cannot go there" << std::endl;
+			}
 		}
 		else if (command == "list") {
 			if (list[choice].items.empty()) {
@@ -89,11 +122,17 @@ int main()
 			else {
 				std::cout << "which item?" << std::endl;
 				std::cin >> pickItem;
-				for (int i = 0; i < 10; i++) {
-					if (pickItem == list[choice].items[i]) {
-						myItems.push_back(list[choice].items[i]);
-						list[choice].items.erase(list[choice].items.cbegin() + i);
-						std::cout << "item picked successfully" << std::endl;
+				if (choice == 8 && pickItem == "water") {
+					myItems.push_back(list[choice].items[i]);
+					std::cout << "item picked successfully" << std::endl;
+				}
+				else {
+					for (int i = 0; i < 10; i++) {
+						if (pickItem == list[choice].items[i]) {
+							myItems.push_back(list[choice].items[i]);
+							list[choice].items.erase(list[choice].items.cbegin() + i);
+							std::cout << "item picked successfully" << std::endl;
+						}
 					}
 				}
 			}
@@ -123,6 +162,48 @@ int main()
 			else {
 				std::cout << "choose an item" << std::endl;
 				std::cin >> useItem;
+				if (useItem == "key" && choice == 6) {
+					choice == 13
+				}
+				else if (choice == 0) {
+
+				}
+				else if (choice == 1) {
+
+				}
+				else if (choice == 11) {
+
+				}
+				else if (choice == 12) {
+					int reaction;
+					if (useItem == "somethingWeird") {
+						reaction = rand() % 4 + 1;
+					}
+					else {
+						for (int i = 0; i < 11; i++) {
+							if (useItem == itemname[i]) {
+								reaction = react[i];
+							}
+						}
+					}
+					if (reaction == 1) {
+						std::cout << "The guy did not like it so much that he hit you in the face(" << std::endl;
+						hp = hp-20;
+					}
+					else if (reaction == 2) {
+						std::cout << "The guy did not like it" << std::endl;
+					}
+					else if (reaction == 3) {
+						std::cout << "The guy liked it" << std::endl;
+					}
+					else if (reaction == 4) {
+						std::cout << "The guy liked it so much that he hugged and kissed you)" << std::endl;
+						hp = hp+20;
+					}
+				}
+				else {
+					std::cout << "nothing to use here" << std::endl;
+				}
 			}
 		}
 		else if (command == "combine") {
