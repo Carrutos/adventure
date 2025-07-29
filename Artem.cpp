@@ -1,17 +1,17 @@
 
 #include <vector>
 #include <iostream>
-
+using namespace std;
 struct door {
-	std::string name;
+	string name;
 	int target;
 };
 
 struct room {
-	std::string name;
-	std::string desc;
-	std::vector<door>doors;
-	std::vector<std::string>items;
+	string name;
+	string desc;
+	vector<door>doors;
+	vector<string>items;
 };
 
 struct useResult {
@@ -26,6 +26,7 @@ struct useResult {
 };*/
 
 struct human {
+	string name;
 	int hp;
 	int damage;
 };
@@ -75,24 +76,28 @@ int main()
 	list[11].doors = { { "iceRoom-storageRoom",7 } };
 	list[11].items = { itemname[1], itemname[9] };
 	list[12].doors = { { "man-kitchenHall",4 } };
-	useResult useOven[18] = { {"chocolate", "moltenChocolate"}, {"frozenPelmeni", "friedPelmeni"}, {"carrot", "friedCarrot"}, {"apple", "friedApple"}, {"tomato", "tomatoJuice"},
-		{"milk", "butter"}, {"jam", "jam"}, {"dryNoodles", "friedNoodles"}, {"frozenFish", "friedFish"}, {"lemon", "somethingWeird"}, {"key", "copper"}, {"moltenChocolate", "coal",
-		{"tomatoJuice", "tomatoJuice"}, {"butter", "butter"}, {"copper", "copper"}, {"coal", "coal"}, {"frozenChocolate", "chocolate"}, {"ice", "water"}, {"frozenCarrot", "carrot",
-		{"frozenApple", "apple"}, {"frozenTomato", "tomato"}, {"milkIce", "milk"}, {"jamIce", "jam"}, {"frozenNoodles", "friedNoodles"}, {"frozenLemon", "lemon"}, {"frozenKey", "key",
+	useResult useOven[30] = { {"chocolate", "moltenChocolate"}, {"frozenPelmeni", "friedPelmeni"}, {"carrot", "friedCarrot"}, {"apple", "friedApple"}, {"tomato", "tomatoJuice"},
+		{"milk", "butter"}, {"jam", "jam"}, {"dryNoodles", "friedNoodles"}, {"frozenFish", "friedFish"}, {"lemon", "somethingWeird"}, {"key", "copper"}, {"moltenChocolate", "coal"},
+		{"tomatoJuice", "tomatoJuice"}, {"butter", "butter"}, {"copper", "copper"}, {"coal", "coal"}, {"frozenChocolate", "chocolate"}, {"ice", "water"}, {"frozenCarrot", "carrot"},
+		{"frozenApple", "apple"}, {"frozenTomato", "tomato"}, {"milkIce", "milk"}, {"jamIce", "jam"}, {"frozenNoodles", "friedNoodles"}, {"frozenLemon", "lemon"}, {"frozenKey", "key"},
 		{"chocoMass", "moltenChocolate"}, {"frozenJuice", "tomatoJuice"}, {"frozenButter", "butter"}, {"somethingWeird", "somethingWeird"}};
-	useResult useIce[15] = { {"chocolate", "frozenChocolate"}, {"carrot", "frozenCarrot"}, {"apple", "frozenApple"}, {"tomato", "frozenTomato"}, {"water", "ice"}, {"milk", "milkIce"},
+	useResult useIce[25] = { {"chocolate", "frozenChocolate"}, {"carrot", "frozenCarrot"}, {"apple", "frozenApple"}, {"tomato", "frozenTomato"}, {"water", "ice"}, {"milk", "milkIce"},
 		{"jam", "jamIce"}, {"dryNoodles", "frozenNoodles"}, {"lemon", "frozenLemon"}, {"key", "frozenKey"}, {"moltenChocolate", "chocoMass"}, {"friedPelmeni", "frozenPelmeni"},
 		{"friedCarrot", "frozenCarrot"}, {"friedApple", "frozenApple"}, {"tomatoJuice", "frozenJuice"}, {"butter", "frozenButter"}, {"friedNoodles", "frozenNoodles"}, {"friedFish",
 		"frozenFish"}, {"copper", "copper"}, {"coal", "coal"}, {"ice", "ice"}, {"milkIce", "ice"}, {"jamIce", "ice"}, {"chocoMass", "frozenChocolate"}, {"somethingWeird",
-		"somethingWeird"};
+		"somethingWeird"} };
 	//combineResult combines = {};
 	int choice = 4;
-	int hp = 41;
+	int hp = 81;
+	int damage = 20;
 	std::vector<std::string>myItems;
 	std::string command;
 	int feed = 0;
-	human man = { 21, 20 };
+	human man = { "man", 21, 10 };
+	human aqua = { "aquaman", 21, 5 };
+	human skelet = { "skeleton", 11, 5 };
 	std::cout << "you wake up in the kitchen of some fat guy's house and are told to feed him something" << std::endl;
+	std::cout << "Be careful! Nasty monsters are somewhere in the house!" << std::endl;
 	while (hp > 0 || feed < 50) {
 		std::cout << "you are in " << list[choice].name << std::endl;
 		std::cin >> command;
@@ -115,6 +120,51 @@ int main()
 			}
 			if (choice == 11) {
 				hp = hp - 2;
+			}
+			if (choice == 8 && aqua.hp > 0 || choice == 10 && skelet.hp > 0) {
+				int ahp;
+				int adamage;
+				if (choice == 8) {
+					std::cout << "aquaman hits you" << std::endl;
+					ahp = aqua.hp;
+					adamage = aqua.damage;
+					hp = hp - adamage;
+				}
+				if (choice == 10) {
+					std::cout << "skeleton in the closet hits you" << std::endl;
+					ahp = skelet.hp;
+					adamage = skelet.damage;
+					hp = hp - adamage;
+				}
+				string decision;
+				while (decision != "out") {
+					cout << "hit - hit him as revenge, pass - go away" << std::endl;
+					cin >> decision;
+					if (decision == "hit") {
+						std::cout << "you hit him" << std::endl;
+						std::cout << "he hit you" << std::endl;
+						ahp = ahp -damage;
+						hp = hp - adamage;
+						std::cout << hp << std::endl;
+						if (ahp >= 1) {
+							std::cout << ahp << std::endl;
+						}
+						else {
+							std::cout << 0 << std::endl;
+						}
+					}
+					if (decision == "pass") {
+						break;
+					}
+					if (ahp < 1) {
+						std::cout << "he is no more" << std::endl;
+						decision = "out";
+					}
+					else if (hp < 1) {
+						std::cout << "rest in peace" << std::endl;
+						decision = "out";
+					}
+				}
 			}
 		}
 		else if (command == "list") {
@@ -158,6 +208,10 @@ int main()
 						}
 					}
 				}
+				if (pickItem == "somethingWeird") {
+					damage = damage + 2;
+					std::cout << "damage is up " << damage << std::endl;
+				}
 			}
 		}
 		else if (command == "drop") {
@@ -168,12 +222,17 @@ int main()
 			else {
 				std::cout << "which item?" << std::endl;
 				std::cin >> dropItem;
+				int counter = 0;
 				for (int i = 0; i < myItems.size(); i++) {
 					if (dropItem == myItems[i]) {
 						list[choice].items.push_back(myItems[i]);
 						myItems.erase(myItems.cbegin() + i);
 						std::cout << "item dropped successfully" << std::endl;
+						counter++;
 					}
+				}
+				if (counter == 0) {
+					std::cout << "get it first >>" << std::endl;
 				}
 			}
 		}
@@ -189,7 +248,7 @@ int main()
 					break;
 				}
 				else if (choice == 0) {
-					if (useItem.find("fried")) {
+					if (useItem == itemname[13] || useItem == itemname[14] || useItem == itemname[15] || useItem == itemname[18] || useItem == itemname[19]) {
 						for (int j = 0; j < myItems.size(); j++) {
 							if (useItem == myItems[j]) {
 								myItems[j] = "coal";
@@ -206,20 +265,35 @@ int main()
 						}
 					}
 					else {
-						for (int i = 0; i < 37; i++) {
+						for (int i = 0; i < 30; i++) {
 							if (useOven[i].start == useItem) {
 								for (int j = 0; j < myItems.size(); j++) {
 									if (useItem == myItems[j]) {
 										myItems[j] = useOven[i].end;
-										std::cout << "you now have" << useOven[i].end << std::endl;
+										std::cout << "you now have " << useOven[i].end << std::endl;
 									}
 								}
 							}
 						}
 					}
 				}
+				else if (choice == 4) {
+					if (useItem != itemname[11] && useItem != itemname[20] && useItem != itemname[21] && useItem != itemname[33]) {
+						for (int j = 0; j < myItems.size(); j++) {
+							if (useItem == myItems[j]) {
+								myItems.erase(myItems.cbegin() + j);
+								hp = hp + 10;
+								std::cout << "hp is up" << std::endl;
+							}
+						}
+					}
+					else {
+						std::cout << "you cannot eat this" << std::endl;
+					}
+				}
 				else if (choice == 11) {
-					if (useItem.find("frozen")) {
+					if (useItem == itemname[1] || useItem == itemname[9] || useItem == itemname[22] || useItem == itemname[24] || useItem == itemname[25] || useItem == itemname[26]
+						|| useItem == itemname[29] || useItem == itemname[30] || useItem == itemname[31] || useItem == itemname[33] || useItem == itemname[34]) {
 						for (int j = 0; j < myItems.size(); j++) {
 							if (useItem == myItems[j]) {
 								std::cout << "you still have " << useItem << std::endl;
@@ -227,12 +301,12 @@ int main()
 						}
 					}
 					else {
-						for (int i = 0; i < 37; i++) {
+						for (int i = 0; i < 25; i++) {
 							if (useIce[i].start == useItem) {
 								for (int j = 0; j < myItems.size(); j++) {
 									if (useItem == myItems[j]) {
 										myItems[j] = useIce[i].end;
-										std::cout << "you now have" << useIce[i].end << std::endl;
+										std::cout << "you now have " << useIce[i].end << std::endl;
 									}
 								}
 							}
@@ -265,19 +339,27 @@ int main()
 								man.damage = man.damage - 5;
 								hp = hp - man.damage;
 								std::cout << hp << std::endl;
-								std::cout << man.hp << std::endl;
+								if (man.hp >= 1) {
+									std::cout << man.hp << std::endl;
+								}
+								else {
+									std::cout << 0 << std::endl;
+								}
 							}
 							if (decision == "pass") {
 								break;
 							}
 							if (man.hp < 1) {
-								feed = 100;
+								std::cout << "he is no more" << std::endl;
 								decision = "out";
 							}
 							else if (hp < 1) {
 								std::cout << "rest in peace" << std::endl;
 								decision = "out";
 							}
+						}
+						if (man.hp < 1) {
+							break;
 						}
 					}
 					else if (reaction == 2) {
