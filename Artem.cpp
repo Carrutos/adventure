@@ -19,11 +19,11 @@ struct useResult {
 	std::string end;
 };
 
-struct combineResult {
+/*struct combineResult {
 	std::string item1;
 	std::string item2;
 	std::string result;
-};
+};*/
 
 struct human {
 	int hp;
@@ -32,13 +32,15 @@ struct human {
 
 int main()
 {
-	std::string itemname[24] = { "chocolate", "frozenPelmeni", "carrot", "apple", "tomato", "water", "milk", "jam", "dryNoodles", "fish", "lemon", "key",
-		"moltenChocolate", "friedPelmeni", "friedCarrtot", "friedApple", "tomatoJuice", "nothing", "butter", "friedNoodles", "friedFish", "friedLemon", "moltenKey", "coal"};
-	int react[24] = { 4, 1, 3, 3, 2, 2, 3, 3, 2, 2, 2, 1, 2, 4, 3, 2, 2, 2, 2, 3, 4, 1, 1, 1 };
+	std::string itemname[36] = { "chocolate", "frozenPelmeni", "carrot", "apple", "tomato", "water", "milk", "jam", "dryNoodles", "frozenFish", "lemon", "key", "moltenChocolate",
+		"friedPelmeni", "friedCarrot", "friedApple", "tomatoJuice", "butter", "friedNoodles", "friedFish", "copper", "coal", "frozenChocolate", "ice", "frozenCarrot", "frozenApple",
+		"frozenTomato", "milkIce", "jamIce", "frozenNoodles", "frozenLemon", "frozenKey", "chocoMass", "frozenJuice", "frozenButter", "somethingWeird" };
+	int react[35] = { 4, 1, 3, 3, 2, 2, 3, 3, 2, 2, 2, 1, 2, 4, 3, 2, 2, 2, 3, 3, 1, 1, 2, 2, 2, 2, 2, 3, 2, 1, 2, 1, 2, 2, 2 };
 	room list[13];
 	list[0].name = { "oven" };
 	list[0].desc = { "cooks food" };
-	list[1] = { "stove","also cooks food, but differently" };
+	list[1] = { "brokenStove","does not cook food" };
+	list[1].items = { itemname[3] };
 	list[2] = { "fridge","stores food" };
 	list[3] = { "closet","also stores food" };
 	list[4] = { "kitchenHall","leads to kitchen furniture and other places" };
@@ -50,14 +52,14 @@ int main()
 	list[10] = { "closet2","stores food, the one in storage" };
 	list[11] = { "iceRoom","freezes everything" };
 	list[12] = { "man","eats food" };
-	list[0].doors = { { "oven-stove",1 },{ "oven-fridge",2 },{ "oven-kitchenHall",4 } };
-	list[1].doors = { { "stove-oven",0 },{ "stove-closet",3 },{ "stove-kitchenHall",4 } };
+	list[0].doors = { { "oven-brokenStove",1 },{ "oven-fridge",2 },{ "oven-kitchenHall",4 } };
+	list[1].doors = { { "brokenStove-oven",0 },{ "brokenStove-closet",3 },{ "brokenStove-kitchenHall",4 } };
 	list[2].doors = { { "fridge-oven",0 },{ "fridge-kitchenHall",4 } };
 	list[2].items = { itemname[4], itemname[3], itemname[6] };
-	list[3].doors = { { "closet-stove",1 },{ "closet-kitchenHall",4 } };
+	list[3].doors = { { "closet-brokenStove",1 },{ "closet-kitchenHall",4 } };
 	list[3].items = { itemname[2], itemname[8] };
-	list[4].doors = { { "kitchenHall-oven",0 },{ "kitchenHall-stove",1 },{"kitchenHall-fridge",2},{"kitchenHall-closet",3},{"kitchenHall-hall",5},
-		{"kitchenHall-storageRoom",7},{"kitchenHall-man",12}};
+	list[4].doors = { { "kitchenHall-oven",0 },{ "kitchenHall-brokenStove",1 },{"kitchenHall-fridge",2},{"kitchenHall-closet",3},{"kitchenHall-hall",5},
+		{"kitchenHall-storageRoom",7},{"kitchenHall-man",12} };
 	list[4].items = { itemname[0] };
 	list[5].doors = { { "hall-kitchenHall",4 },{ "hall-exit",6 } };
 	list[5].items = { itemname[11] };
@@ -66,27 +68,30 @@ int main()
 	list[7].items = { itemname[0] };
 	list[8].doors = { { "pool-storageRoom",7 } };
 	list[8].items = { itemname[5] };
-	list[9].doors = { { "closet1-storageRoom",7 },{ "closet1-closet2",10}};
+	list[9].doors = { { "closet1-storageRoom",7 },{ "closet1-closet2",10} };
 	list[9].items = { itemname[7], itemname[10] };
 	list[10].doors = { { "closet2-storageRoom",7 },{ "closet2-closet1",9} };
 	list[10].items = { itemname[2], itemname[8] };
 	list[11].doors = { { "iceRoom-storageRoom",7 } };
 	list[11].items = { itemname[1], itemname[9] };
 	list[12].doors = { { "man-kitchenHall",4 } };
-	useResult useOven[18] = {{"chocolate", "moltenChocolate"},{"frozenPelmeni", "friedPelmeni"}, {"carrot", "friedCarrot"}, {"apple", "friedApple"}, {"tomato","tomatoJuice"},
-		{"water","nothing"}, {"milk", "butter"}, {"jam", "jam"}, {"dryNoodles", "friedNoodles"}, {"fish","friedFish"}, {"lemon", "friedLemon"}, {"key", "moltenKey"},
-		{"moltenChocolate", "coal"}, {"tomatoJuice", "tomatoJuice"}, {"nothing", "nothing"}, {"butter", "butter"}, {"moltenKey", "coal"}, {"coal", "coal"}};
-	useResult useStove = {};
-	useResult useIce[15] = {{"chocolate", "frozenChocolate"}, {"carrot", "frozenCarrot"}, {"apple", "frozenApple"}, {"tomato", "frozenTomato"}, {"water", "ice"}, {"milk",
-		"frozenMilk"}, {"jam", "frozenJam"}, {"dryNoodles", "frozenNoodles"}, {"fish", "frozenFish"}, {"lemon", "frozenLemon"}, {"key", "key"}, {"moltenChocolate",
-		"chocolate"}, {"tomatoJuice", "tomatoIce"}, {"butter", "milk"}, {"moltenKey", "metal"}};
+	useResult useOven[18] = { {"chocolate", "moltenChocolate"}, {"frozenPelmeni", "friedPelmeni"}, {"carrot", "friedCarrot"}, {"apple", "friedApple"}, {"tomato", "tomatoJuice"},
+		{"milk", "butter"}, {"jam", "jam"}, {"dryNoodles", "friedNoodles"}, {"frozenFish", "friedFish"}, {"lemon", "somethingWeird"}, {"key", "copper"}, {"moltenChocolate", "coal",
+		{"tomatoJuice", "tomatoJuice"}, {"butter", "butter"}, {"copper", "copper"}, {"coal", "coal"}, {"frozenChocolate", "chocolate"}, {"ice", "water"}, {"frozenCarrot", "carrot",
+		{"frozenApple", "apple"}, {"frozenTomato", "tomato"}, {"milkIce", "milk"}, {"jamIce", "jam"}, {"frozenNoodles", "friedNoodles"}, {"frozenLemon", "lemon"}, {"frozenKey", "key",
+		{"chocoMass", "moltenChocolate"}, {"frozenJuice", "tomatoJuice"}, {"frozenButter", "butter"}, {"somethingWeird", "somethingWeird"}};
+	useResult useIce[15] = { {"chocolate", "frozenChocolate"}, {"carrot", "frozenCarrot"}, {"apple", "frozenApple"}, {"tomato", "frozenTomato"}, {"water", "ice"}, {"milk", "milkIce"},
+		{"jam", "jamIce"}, {"dryNoodles", "frozenNoodles"}, {"lemon", "frozenLemon"}, {"key", "frozenKey"}, {"moltenChocolate", "chocoMass"}, {"friedPelmeni", "frozenPelmeni"},
+		{"friedCarrot", "frozenCarrot"}, {"friedApple", "frozenApple"}, {"tomatoJuice", "frozenJuice"}, {"butter", "frozenButter"}, {"friedNoodles", "frozenNoodles"}, {"friedFish",
+		"frozenFish"}, {"copper", "copper"}, {"coal", "coal"}, {"ice", "ice"}, {"milkIce", "ice"}, {"jamIce", "ice"}, {"chocoMass", "frozenChocolate"}, {"somethingWeird",
+		"somethingWeird"};
 	//combineResult combines = {};
 	int choice = 4;
 	int hp = 41;
 	std::vector<std::string>myItems;
 	std::string command;
 	int feed = 0;
-	human man = {21, 20};
+	human man = { 21, 20 };
 	std::cout << "you wake up in the kitchen of some fat guy's house and are told to feed him something" << std::endl;
 	while (hp > 0 || feed < 50) {
 		std::cout << "you are in " << list[choice].name << std::endl;
@@ -107,6 +112,9 @@ int main()
 			if (counter == 0) {
 				choice == choiceOld;
 				std::cout << "you cannot go there" << std::endl;
+			}
+			if (choice == 11) {
+				hp = hp - 2;
 			}
 		}
 		else if (command == "list") {
@@ -189,48 +197,47 @@ int main()
 							}
 						}
 					}
-					/*for (int i = 0; i < 20; i++) {
-						if (useOven[i].start == useItem) {
-							for (int j = 0; j < myItems.size(); j++) {
-								if (useItem == myItems[j]) {
-									myItems[j] = useOven[i].end;
-									std::cout << "you now have" << useOven[i].end << std::endl;
+					else if (useItem == "water") {
+						for (int j = 0; j < myItems.size(); j++) {
+							if (useItem == myItems[j]) {
+								myItems.erase(myItems.cbegin() + j);
+								std::cout << "you now have nothing" << std::endl;
+							}
+						}
+					}
+					else {
+						for (int i = 0; i < 37; i++) {
+							if (useOven[i].start == useItem) {
+								for (int j = 0; j < myItems.size(); j++) {
+									if (useItem == myItems[j]) {
+										myItems[j] = useOven[i].end;
+										std::cout << "you now have" << useOven[i].end << std::endl;
+									}
 								}
 							}
 						}
-					}*/
-				}
-				else if (choice == 1) {
-					/*for (int i = 0; i < 20; i++) {
-						if (useStove[i].start == useItem) {
-							for (int j = 0; j < myItems.size(); j++) {
-								if (useItem == myItems[j]) {
-									myItems[j] = useStove[i].end;
-									std::cout << "you now have" << useStove[i].end << std::endl;
-								}
-							}
-						}
-					}*/
+					}
 				}
 				else if (choice == 11) {
 					if (useItem.find("frozen")) {
 						for (int j = 0; j < myItems.size(); j++) {
 							if (useItem == myItems[j]) {
-								myItems[j] = "ice";
-								std::cout << "you now have ice" << std::endl;
+								std::cout << "you still have " << useItem << std::endl;
 							}
 						}
 					}
-					/*for (int i = 0; i < 20; i++) {
-						if (useIce[i].start == useItem) {
-							for (int j = 0; j < myItems.size(); j++) {
-								if (useItem == myItems[j]) {
-									myItems[j] = useIce[i].end;
-									std::cout << "you now have" << useIce[i].end << std::endl;
+					else {
+						for (int i = 0; i < 37; i++) {
+							if (useIce[i].start == useItem) {
+								for (int j = 0; j < myItems.size(); j++) {
+									if (useItem == myItems[j]) {
+										myItems[j] = useIce[i].end;
+										std::cout << "you now have" << useIce[i].end << std::endl;
+									}
 								}
 							}
 						}
-					}*/
+					}
 				}
 				else if (choice == 12) {
 					int reaction = 0;
@@ -281,7 +288,12 @@ int main()
 					}
 					else if (reaction == 4) {
 						std::cout << "The guy liked it so much that he hugged and kissed you)" << std::endl;
-						hp = hp+20;
+						hp = hp + 20;
+					}
+					for (int j = 0; j < myItems.size(); j++) {
+						if (useItem == myItems[j]) {
+							myItems.erase(myItems.cbegin() + j);
+						}
 					}
 					feed++;
 				}
