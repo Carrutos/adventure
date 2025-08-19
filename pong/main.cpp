@@ -4,6 +4,7 @@
 
 #include "windows.h"
 #include "cmath"
+#include <string>
 
 // секция данных игры  
 typedef struct {
@@ -38,7 +39,7 @@ void InitGame()
     //результат работы LoadImageA сохраняет в хэндлах битмапов, рисование спрайтов будет произовдиться с помощью этих хэндлов
     ball.hBitmap = (HBITMAP)LoadImageA(NULL, "dig10k_penguin.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     racket.hBitmap = (HBITMAP)LoadImageA(NULL, "racket.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-    enemy.hBitmap = (HBITMAP)LoadImageA(NULL, "Mandrill.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    enemy.hBitmap = (HBITMAP)LoadImageA(NULL, "racket.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     hero.hBitmap = (HBITMAP)LoadImageA(NULL, "ball.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     hBack = (HBITMAP)LoadImageA(NULL, "back.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     //------------------------------------------------------
@@ -50,7 +51,7 @@ void InitGame()
     racket.y = window.height - racket.height;//чуть выше низа экрана - на высоту ракетки
 
     enemy.x = window.width / 2;//х координату оппонета ставим в ту же точку что и игрока
-    enemy.y = 0;
+    enemy.y = 200;
     enemy.height = 300;
     enemy.width = 300;
 
@@ -71,7 +72,7 @@ void InitGame()
     game.score = 0;
     game.balls = 9;
 
-   
+
 }
 
 void ShowBitmap(HDC hDC, int x, int y, int x1, int y1, HBITMAP hBitmapBall, bool alpha = false)
@@ -107,7 +108,7 @@ void ShowRacketAndBall()
     ShowBitmap(window.context, 0, 0, window.width, window.height, hBack);//задний фон
     ShowBitmap(window.context, racket.x - racket.width / 2., racket.y, racket.width, racket.height, racket.hBitmap);// ракетка игрока
 
-    
+
 
     ShowBitmap(window.context, enemy.x, enemy.y, enemy.width, enemy.height, enemy.hBitmap);//ракетка оппонента
     ShowBitmap(window.context, ball.x - ball.rad, ball.y - ball.rad, 2 * ball.rad, 2 * ball.rad, ball.hBitmap, true);// шарик
@@ -130,86 +131,106 @@ void InitWindow()
 
 }
 
-int coll(float ax, float awidth, float ay, float aheight, float bx, float bwidth, float by, float bheight) {
+bool coll(sprite a, sprite b) {
+    return true;
+}
 
-    if (ax + awidth > bx) {
-        if (ay + aheight > by && ay < by + bheight && ax < bx) {
-            ax = bx - awidth;
-            
-        }
+int collCase() {
+    if (hero.x + hero.width >= enemy.x && hero.y < enemy.y + enemy.height && hero.y + hero.height > enemy.y && hero.x < enemy.x) {
+        return 1;
     }
-    if (ay + aheight > by) {
-        if (ax + awidth > bx && ax < bx + bwidth && ay < by) {
-            ay = by - aheight;
-           
-        }
+    if (hero.x <= enemy.x + enemy.width && hero.y < enemy.y + enemy.height && hero.y + hero.height > enemy.y && hero.x + hero.width > enemy.x + enemy.width) {
+        return 2;
     }
-    if (ay < by + bheight) {
-        if (ax + awidth > bx && ax < bx + bwidth && ay + aheight > by + bheight) {
-            ay = by + bheight;
-           
-        }
+    if (hero.y <= enemy.y + enemy.height && hero.x < enemy.x + enemy.width && hero.x + hero.width > enemy.x && hero.y + hero.height > enemy.y + enemy.height) {
+        return 3;
     }
-    if (ax < bx + bwidth) {
-        if (ay + aheight > by && ay < by + bheight && ax + awidth > bx + bwidth) {
-            ax = bx + bwidth;
-            
-        }
+    if (hero.y + hero.height >= enemy.y && hero.x < enemy.x + enemy.width && hero.x + hero.width > enemy.x && hero.y < enemy.y) {
+        return 4;
     }
-    return ax, ay;
 }
 
 void moveHero() {
-    
-
-    if (GetAsyncKeyState('D') && GetAsyncKeyState('W')) {
-        hero.x += hero.speed / sqrt(2);
-        hero.y -= hero.speed / sqrt(2);
-    }
-    else if (GetAsyncKeyState('W') && GetAsyncKeyState('A')) {
-        hero.x -= hero.speed / sqrt(2);
-        hero.y -= hero.speed / sqrt(2);
-    }
-    else if (GetAsyncKeyState('S') && GetAsyncKeyState('A')) {
-        hero.x -= hero.speed / sqrt(2);
-        hero.y += hero.speed / sqrt(2);
-    }
-    else if (GetAsyncKeyState('S') && GetAsyncKeyState('D')) {
-        hero.x += hero.speed / sqrt(2);
-        hero.y += hero.speed / sqrt(2);
-    }
-    else if (GetAsyncKeyState('D')) {
-        if (hero.x + hero.width == enemy.x && hero.y < enemy.y + enemy.height && hero.y + hero.height > enemy.y && hero.x < enemy.x) {
-            
+        if (GetAsyncKeyState('D') && GetAsyncKeyState('W')) {
+            if (collCase() == 3) {
+                hero.y += hero.speed;
+            }
+            else if (collCase() == 1) {
+                hero.x -= hero.speed;
+            }
+            else {
+                hero.x += hero.speed / sqrt(2);
+                hero.y -= hero.speed / sqrt(2);
+            }
         }
-        else {
-            hero.x += hero.speed;
+        else if (GetAsyncKeyState('W') && GetAsyncKeyState('A')) {
+            if (collCase() == 3) {
+                hero.y += hero.speed;
+            }
+            else if (collCase() == 2) {
+                hero.x += hero.speed;
+            }
+            else {
+                hero.x -= hero.speed / sqrt(2);
+                hero.y -= hero.speed / sqrt(2);
+            }
         }
-    }
-    else if (GetAsyncKeyState('A')) {
-        if (hero.x == enemy.x + enemy.width && hero.y < enemy.y + enemy.height && hero.y + hero.height > enemy.y && hero.x + hero.width > enemy.x + enemy.width) {
-
+        else if (GetAsyncKeyState('S') && GetAsyncKeyState('A')) {
+            if (collCase() == 4) {
+                hero.y -= hero.speed;
+            }
+            else if (collCase() == 2) {
+                hero.x += hero.speed;
+            }
+            else {
+                hero.x -= hero.speed / sqrt(2);
+                hero.y += hero.speed / sqrt(2);
+            }
         }
-        else {
-            hero.x -= hero.speed;
+        else if (GetAsyncKeyState('S') && GetAsyncKeyState('D')) {
+            if (collCase() == 4) {
+                hero.y -= hero.speed;
+            }
+            else if (collCase() == 1) {
+                hero.x -= hero.speed;
+            }
+            else {
+                hero.x += hero.speed / sqrt(2);
+                hero.y += hero.speed / sqrt(2);
+            }
         }
-    }
-    else if (GetAsyncKeyState('W') ) {
-        if (hero.y == enemy.y + enemy.height && hero.x < enemy.x + enemy.width && hero.x + hero.width > enemy.x && hero.y + hero.height > enemy.y + enemy.height) {
-
+        else if (GetAsyncKeyState('D')) {
+            if (collCase() != 1) {
+                hero.x += hero.speed;
+            }
+            else {
+                hero.x -= hero.speed;
+            }
         }
-        else {
-            hero.y -= hero.speed;
+        else if (GetAsyncKeyState('A')) {
+            if (collCase() != 2) {
+                hero.x -= hero.speed;
+            }
+            else {
+                hero.x += hero.speed;
+            }
         }
-    }
-    else if (GetAsyncKeyState('S')) {
-        if (hero.y + hero.height == enemy.y && hero.x < enemy.x + enemy.width && hero.x + hero.width > enemy.x && hero.y < enemy.y) {
-
+        else if (GetAsyncKeyState('W')) {
+            if (collCase() != 3) {
+                hero.y -= hero.speed;
+            }
+            else {
+                hero.y += hero.speed;
+            }
         }
-        else {
-            hero.y += hero.speed;
+        else if (GetAsyncKeyState('S')) {
+            if (collCase() != 4) {
+                hero.y += hero.speed;
+            }
+            else {
+                hero.y -= hero.speed;
+            }
         }
-    }
     if (hero.x < 0) {
         hero.x = 0;
     }
@@ -222,19 +243,18 @@ void moveHero() {
     if (hero.y + hero.height > window.height) {
         hero.y = window.height - hero.height;
     }
-
     //hero.x, hero.y = coll(hero.x, hero.width, hero.y, hero.height, enemy.x, enemy.width, enemy.y, enemy.height);
-    
+
 }
 
-int APIENTRY wWinMain( HINSTANCE hInstance,HINSTANCE hPrevInstance,LPWSTR  lpCmdLine, int  nCmdShow)
+int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR  lpCmdLine, int  nCmdShow)
 {
-    
+
     InitWindow();//здесь инициализируем все что нужно для рисования в окне
     InitGame();//здесь инициализируем переменные игры
 
     ShowCursor(NULL);
-    
+
     while (!GetAsyncKeyState(VK_ESCAPE))
     {
         moveHero();
