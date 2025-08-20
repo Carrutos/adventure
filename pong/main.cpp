@@ -1,4 +1,4 @@
-﻿//linker::system::subsystem  - Windows(/ SUBSYSTEM:WINDOWS)
+// linker::system::subsystem - Windows(/ SUBSYSTEM:WINDOWS)
 //configuration::advanced::character set - not set
 //linker::input::additional dependensies Msimg32.lib; Winmm.lib
 
@@ -136,101 +136,115 @@ bool coll(sprite a, sprite b) {
 }
 
 int collCase() {
-    if (hero.x + hero.width >= enemy.x && hero.y < enemy.y + enemy.height && hero.y + hero.height > enemy.y && hero.x < enemy.x) {
+    if (hero.x + hero.width >= enemy.x && hero.y < enemy.y + enemy.height && hero.y + hero.height > enemy.y && hero.x + hero.width <= enemy.x + hero.speed) {
         return 1;
     }
-    if (hero.x <= enemy.x + enemy.width && hero.y < enemy.y + enemy.height && hero.y + hero.height > enemy.y && hero.x + hero.width > enemy.x + enemy.width) {
+    if (hero.x <= enemy.x + enemy.width && hero.y < enemy.y + enemy.height && hero.y + hero.height > enemy.y && hero.x >= enemy.x + enemy.width - hero.speed) {
         return 2;
     }
-    if (hero.y <= enemy.y + enemy.height && hero.x < enemy.x + enemy.width && hero.x + hero.width > enemy.x && hero.y + hero.height > enemy.y + enemy.height) {
+    if (hero.y <= enemy.y + enemy.height && hero.x < enemy.x + enemy.width && hero.x + hero.width > enemy.x && hero.y >= enemy.y + enemy.height - hero.speed) {
         return 3;
     }
-    if (hero.y + hero.height >= enemy.y && hero.x < enemy.x + enemy.width && hero.x + hero.width > enemy.x && hero.y < enemy.y) {
+    if (hero.y + hero.height >= enemy.y && hero.x < enemy.x + enemy.width && hero.x + hero.width > enemy.x && hero.y + hero.height <= enemy.y + hero.speed) {
         return 4;
     }
+    /*if (hero.x + hero.width >= enemy.x && hero.y < enemy.y + enemy.height && hero.y + hero.height > enemy.y && hero.x + hero.width <= enemy.x + hero.speed ||
+    hero.x <= enemy.x + enemy.width && hero.y < enemy.y + enemy.height && hero.y + hero.height > enemy.y && hero.x >= enemy.x + enemy.width - hero.speed ||
+    hero.y <= enemy.y + enemy.height && hero.x < enemy.x + enemy.width && hero.x + hero.width > enemy.x && hero.y >= enemy.y + enemy.height - hero.speed ||
+    hero.y + hero.height >= enemy.y && hero.x < enemy.x + enemy.width && hero.x + hero.width > enemy.x && hero.y + hero.height <= enemy.y + hero.speed) {
+        return 1;
+    }
+    newXY = min(hero.x + hero.width - enemy.x, enemy.x + enemy.width - hero.x, hero.y + hero.height - enemy.y, enemy.y + enemy.height - hero.y);
+    if (newXY == hero.x + hero.width - enemy.x) {
+    hero.x = hero.x + hero.width - enemy.x;
+    }
+    else if (newXY == enemy.x + enemy.width - hero.x) {
+    hero.x = enemy.x + enemy.width - hero.x
+    }
+    etc*/
 }
 
 void moveHero() {
-        if (GetAsyncKeyState('D') && GetAsyncKeyState('W')) {
-            if (collCase() == 3) {
-                hero.y += hero.speed;
-            }
-            else if (collCase() == 1) {
-                hero.x -= hero.speed;
-            }
-            else {
-                hero.x += hero.speed / sqrt(2);
-                hero.y -= hero.speed / sqrt(2);
-            }
+    if (GetAsyncKeyState('D') && GetAsyncKeyState('W')) {
+        if (collCase() == 3) {
+            hero.y = enemy.y + enemy.height + 1;
         }
-        else if (GetAsyncKeyState('W') && GetAsyncKeyState('A')) {
-            if (collCase() == 3) {
-                hero.y += hero.speed;
-            }
-            else if (collCase() == 2) {
-                hero.x += hero.speed;
-            }
-            else {
-                hero.x -= hero.speed / sqrt(2);
-                hero.y -= hero.speed / sqrt(2);
-            }
+        else if (collCase() == 1) {
+            hero.x = enemy.x - 1 - hero.width;
         }
-        else if (GetAsyncKeyState('S') && GetAsyncKeyState('A')) {
-            if (collCase() == 4) {
-                hero.y -= hero.speed;
-            }
-            else if (collCase() == 2) {
-                hero.x += hero.speed;
-            }
-            else {
-                hero.x -= hero.speed / sqrt(2);
-                hero.y += hero.speed / sqrt(2);
-            }
+        else {
+            hero.x += hero.speed / sqrt(2);
+            hero.y -= hero.speed / sqrt(2);
         }
-        else if (GetAsyncKeyState('S') && GetAsyncKeyState('D')) {
-            if (collCase() == 4) {
-                hero.y -= hero.speed;
-            }
-            else if (collCase() == 1) {
-                hero.x -= hero.speed;
-            }
-            else {
-                hero.x += hero.speed / sqrt(2);
-                hero.y += hero.speed / sqrt(2);
-            }
+    }
+    else if (GetAsyncKeyState('W') && GetAsyncKeyState('A')) {
+        if (collCase() == 3) {
+            hero.y = enemy.y + enemy.height + 1;
         }
-        else if (GetAsyncKeyState('D')) {
-            if (collCase() != 1) {
-                hero.x += hero.speed;
-            }
-            else {
-                hero.x -= hero.speed;
-            }
+        else if (collCase() == 2) {
+            hero.x = enemy.x + enemy.width + 1;
         }
-        else if (GetAsyncKeyState('A')) {
-            if (collCase() != 2) {
-                hero.x -= hero.speed;
-            }
-            else {
-                hero.x += hero.speed;
-            }
+        else {
+            hero.x -= hero.speed / sqrt(2);
+            hero.y -= hero.speed / sqrt(2);
         }
-        else if (GetAsyncKeyState('W')) {
-            if (collCase() != 3) {
-                hero.y -= hero.speed;
-            }
-            else {
-                hero.y += hero.speed;
-            }
+    }
+    else if (GetAsyncKeyState('S') && GetAsyncKeyState('A')) {
+        if (collCase() == 4) {
+            hero.y = enemy.y - 1 - hero.height;
         }
-        else if (GetAsyncKeyState('S')) {
-            if (collCase() != 4) {
-                hero.y += hero.speed;
-            }
-            else {
-                hero.y -= hero.speed;
-            }
+        else if (collCase() == 2) {
+            hero.x = enemy.x + enemy.width + 1;
         }
+        else {
+            hero.x -= hero.speed / sqrt(2);
+            hero.y += hero.speed / sqrt(2);
+        }
+    }
+    else if (GetAsyncKeyState('S') && GetAsyncKeyState('D')) {
+        if (collCase() == 4) {
+            hero.y = enemy.y - 1 - hero.height;
+        }
+        else if (collCase() == 1) {
+            hero.x = enemy.x - 1 - hero.width;
+        }
+        else {
+            hero.x += hero.speed / sqrt(2);
+            hero.y += hero.speed / sqrt(2);
+        }
+    }
+    else if (GetAsyncKeyState('D')) {
+        if (collCase() != 1) {
+            hero.x += hero.speed;
+        }
+        else {
+            hero.x = enemy.x - 1 - hero.width;
+        }
+    }
+    else if (GetAsyncKeyState('A')) {
+        if (collCase() != 2) {
+            hero.x -= hero.speed;
+        }
+        else {
+            hero.x = enemy.x + enemy.width + 1;
+        }
+    }
+    else if (GetAsyncKeyState('W')) {
+        if (collCase() != 3) {
+            hero.y -= hero.speed;
+        }
+        else {
+            hero.y = enemy.y + enemy.height + 1;
+        }
+    }
+    else if (GetAsyncKeyState('S')) {
+        if (collCase() != 4) {
+            hero.y += hero.speed;
+        }
+        else {
+            hero.y = enemy.y - 1 - hero.height;
+        }
+    }
     if (hero.x < 0) {
         hero.x = 0;
     }
