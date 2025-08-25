@@ -12,10 +12,15 @@ typedef struct {
     HBITMAP hBitmap;//хэндл к спрайту шарика 
 } sprite;
 
-sprite racket;//ракетка игрока
-sprite enemy;//ракетка противника
-sprite ball;//шарик
+sprite oven;//ракетка игрока
+sprite stove;//ракетка противника
+sprite fridge;//шарик
 sprite hero;
+sprite statue1;
+sprite statue2;
+sprite statue3;
+sprite table;
+sprite enemy;
 
 struct {
     int score, balls;//количество набранных очков и оставшихся "жизней"
@@ -37,37 +42,65 @@ void InitGame()
     //в этой секции загружаем спрайты с помощью функций gdi
     //пути относительные - файлы должны лежать рядом с .exe 
     //результат работы LoadImageA сохраняет в хэндлах битмапов, рисование спрайтов будет произовдиться с помощью этих хэндлов
-    ball.hBitmap = (HBITMAP)LoadImageA(NULL, "dig10k_penguin.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-    racket.hBitmap = (HBITMAP)LoadImageA(NULL, "racket.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-    enemy.hBitmap = (HBITMAP)LoadImageA(NULL, "racket.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    oven.hBitmap = (HBITMAP)LoadImageA(NULL, "oven.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    stove.hBitmap = (HBITMAP)LoadImageA(NULL, "stove.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    fridge.hBitmap = (HBITMAP)LoadImageA(NULL, "fridge.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     hero.hBitmap = (HBITMAP)LoadImageA(NULL, "ball.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-    hBack = (HBITMAP)LoadImageA(NULL, "back.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    table.hBitmap = (HBITMAP)LoadImageA(NULL, "table.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    statue1.hBitmap = (HBITMAP)LoadImageA(NULL, "statue1.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    statue2.hBitmap = (HBITMAP)LoadImageA(NULL, "statue2.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    statue3.hBitmap = (HBITMAP)LoadImageA(NULL, "statue3.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    enemy.hBitmap = (HBITMAP)LoadImageA(NULL, "racket.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    hBack = (HBITMAP)LoadImageA(NULL, "marblefloor.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     //------------------------------------------------------
 
-    racket.width = 300;
-    racket.height = 300;
-    racket.speed = 30;//скорость перемещения ракетки
-    racket.x = window.width / 2.;//ракетка посередине окна
-    racket.y = window.height - racket.height;//чуть выше низа экрана - на высоту ракетки
+    fridge.width = 200;
+    fridge.height = 200;
+    fridge.x = 0;
+    fridge.y = 0;
 
-    enemy.x = window.width / 2;//х координату оппонета ставим в ту же точку что и игрока
-    enemy.y = 200;
-    enemy.height = 300;
-    enemy.width = 300;
+    stove.width = 200;
+    stove.height = 200;
+    stove.x = 200;
+    stove.y = 0;
 
+    oven.width = 200;
+    oven.height = 200;
+    oven.x = 400;
+    oven.y = 0;
 
-    ball.dy = (rand() % 65 + 35) / 100.;//формируем вектор полета шарика
-    ball.dx = -(1 - ball.dy);//формируем вектор полета шарика
-    ball.speed = 11;
-    ball.rad = 70;
-    ball.x = racket.x;//x координата шарика - на середине ракетки
-    ball.y = racket.y - ball.rad;//шарик лежит сверху ракетки
+    table.width = 600;
+    table.height = 300;
+    table.x = window.width / 2 - 300;
+    table.y = window.height - 300;
+
+    statue1.width = 150;
+    statue1.height = 150;
+    statue1.x = window.width - 200;
+    statue1.y = 0;
+
+    statue3.width = 200;
+    statue3.height = 400;
+    statue3.x = 0;
+    statue3.y = window.height - 400;
+
+    statue2.width = 100;
+    statue2.height = 300;
+    statue2.x = window.width - 100;
+    statue2.y = window.height - 400;
+
     hero.x = window.width / 4;
     hero.y = window.height / 3 + 20;
     hero.height = 150;
     hero.width = 150;
     hero.speed = 10;
     hero.rad = 75;
+
+    enemy.x = window.width / 4;
+    enemy.y = window.height - 200;
+    enemy.speed = 5;
+    enemy.height = 150;
+    enemy.width = 150;
 
     game.score = 0;
     game.balls = 9;
@@ -106,13 +139,15 @@ void ShowBitmap(HDC hDC, int x, int y, int x1, int y1, HBITMAP hBitmapBall, bool
 void ShowRacketAndBall()
 {
     ShowBitmap(window.context, 0, 0, window.width, window.height, hBack);//задний фон
-    ShowBitmap(window.context, racket.x - racket.width / 2., racket.y, racket.width, racket.height, racket.hBitmap);// ракетка игрока
-
-
-
-    ShowBitmap(window.context, enemy.x, enemy.y, enemy.width, enemy.height, enemy.hBitmap);//ракетка оппонента
-    ShowBitmap(window.context, ball.x - ball.rad, ball.y - ball.rad, 2 * ball.rad, 2 * ball.rad, ball.hBitmap, true);// шарик
     ShowBitmap(window.context, hero.x, hero.y, 2 * hero.rad, 2 * hero.rad, hero.hBitmap);
+    ShowBitmap(window.context, oven.x, oven.y, oven.width, oven.height, oven.hBitmap);
+    ShowBitmap(window.context, stove.x, stove.y, stove.width, stove.height, stove.hBitmap);
+    ShowBitmap(window.context, fridge.x, fridge.y, fridge.width, fridge.height, fridge.hBitmap);
+    ShowBitmap(window.context, table.x, table.y, table.width, table.height, table.hBitmap);
+    ShowBitmap(window.context, statue1.x, statue1.y, statue1.width, statue1.height, statue1.hBitmap);
+    ShowBitmap(window.context, statue2.x, statue2.y, statue2.width, statue2.height, statue2.hBitmap);
+    ShowBitmap(window.context, statue3.x, statue3.y, statue3.width, statue3.height, statue3.hBitmap);
+    ShowBitmap(window.context, enemy.x, enemy.y, enemy.width, enemy.height, enemy.hBitmap);
 }
 
 void InitWindow()
@@ -131,120 +166,166 @@ void InitWindow()
 
 }
 
-bool coll(sprite a, sprite b) {
-    return true;
+int coll(sprite b) {
+    int score = 0;
+    if (hero.x + hero.width >= b.x && hero.y < b.y + b.height && hero.y + hero.height > b.y && hero.x + hero.width <= b.x + hero.speed) {
+        score =  1;
+    }
+    else if (hero.x <= b.x + b.width && hero.y < b.y + b.height && hero.y + hero.height > b.y && hero.x >= b.x + b.width - hero.speed) {
+        score = 2;
+    }
+    else if (hero.y <= b.y + b.height && hero.x < b.x + b.width && hero.x + hero.width > b.x && hero.y >= b.y + b.height - hero.speed) {
+        score = 3;
+    }
+    else if (hero.y + hero.height >= b.y && hero.x < b.x + b.width && hero.x + hero.width > b.x && hero.y + hero.height <= b.y + hero.speed) {
+        score = 4;
+    }
+    if (score == 1) {
+        hero.x = b.x - 1 - hero.width;
+    }
+    else if (score == 2) {
+        hero.x = b.x + b.width + 1;
+    }
+    else if (score == 3) {
+        hero.y = b.y + b.height + 1;
+    }
+    else if (score == 4) {
+        hero.y = b.y - 1 - hero.height;
+    }
+    return score;
 }
 
 int collCase() {
-    if (hero.x + hero.width >= enemy.x && hero.y < enemy.y + enemy.height && hero.y + hero.height > enemy.y && hero.x + hero.width <= enemy.x + hero.speed) {
+    if (coll(table) != 0 || coll(statue1) != 0 || coll(statue2) != 0 || coll(statue3) != 0) {
         return 1;
     }
-    if (hero.x <= enemy.x + enemy.width && hero.y < enemy.y + enemy.height && hero.y + hero.height > enemy.y && hero.x >= enemy.x + enemy.width - hero.speed) {
+    else {
+        return 0;
+    }
+    /*if (hero.x + hero.width >= oven.x && hero.y < oven.y + oven.height && hero.y + hero.height > oven.y && hero.x + hero.width <= oven.x + hero.speed) {
+        return 1;
+    }
+    if (hero.x <= oven.x + oven.width && hero.y < oven.y + oven.height && hero.y + hero.height > oven.y && hero.x >= oven.x + oven.width - hero.speed) {
         return 2;
     }
-    if (hero.y <= enemy.y + enemy.height && hero.x < enemy.x + enemy.width && hero.x + hero.width > enemy.x && hero.y >= enemy.y + enemy.height - hero.speed) {
+    if (hero.y <= oven.y + oven.height && hero.x < oven.x + oven.width && hero.x + hero.width > oven.x && hero.y >= oven.y + oven.height - hero.speed) {
         return 3;
     }
-    if (hero.y + hero.height >= enemy.y && hero.x < enemy.x + enemy.width && hero.x + hero.width > enemy.x && hero.y + hero.height <= enemy.y + hero.speed) {
+    if (hero.y + hero.height >= oven.y && hero.x < oven.x + oven.width && hero.x + hero.width > oven.x && hero.y + hero.height <= oven.y + hero.speed) {
         return 4;
-    }
-    /*if (hero.x + hero.width >= enemy.x && hero.y < enemy.y + enemy.height && hero.y + hero.height > enemy.y && hero.x + hero.width <= enemy.x + hero.speed ||
-    hero.x <= enemy.x + enemy.width && hero.y < enemy.y + enemy.height && hero.y + hero.height > enemy.y && hero.x >= enemy.x + enemy.width - hero.speed ||
-    hero.y <= enemy.y + enemy.height && hero.x < enemy.x + enemy.width && hero.x + hero.width > enemy.x && hero.y >= enemy.y + enemy.height - hero.speed ||
-    hero.y + hero.height >= enemy.y && hero.x < enemy.x + enemy.width && hero.x + hero.width > enemy.x && hero.y + hero.height <= enemy.y + hero.speed) {
+    }*/
+    /*if (hero.x + hero.width >= oven.x && hero.y < oven.y + oven.height && hero.y + hero.height > oven.y && hero.x + hero.width <= oven.x + hero.speed ||
+    hero.x <= oven.x + oven.width && hero.y < oven.y + oven.height && hero.y + hero.height > oven.y && hero.x >= oven.x + oven.width - hero.speed ||
+    hero.y <= oven.y + oven.height && hero.x < oven.x + oven.width && hero.x + hero.width > oven.x && hero.y >= oven.y + oven.height - hero.speed ||
+    hero.y + hero.height >= oven.y && hero.x < oven.x + oven.width && hero.x + hero.width > oven.x && hero.y + hero.height <= oven.y + hero.speed) {
         return 1;
     }
-    newXY = min(hero.x + hero.width - enemy.x, enemy.x + enemy.width - hero.x, hero.y + hero.height - enemy.y, enemy.y + enemy.height - hero.y);
-    if (newXY == hero.x + hero.width - enemy.x) {
-    hero.x = hero.x + hero.width - enemy.x;
+    newXY = min(hero.x + hero.width - oven.x, oven.x + oven.width - hero.x, hero.y + hero.height - oven.y, oven.y + oven.height - hero.y);
+    if (newXY == hero.x + hero.width - oven.x) {
+    hero.x = hero.x + hero.width - oven.x;
     }
-    else if (newXY == enemy.x + enemy.width - hero.x) {
-    hero.x = enemy.x + enemy.width - hero.x
+    else if (newXY == oven.x + oven.width - hero.x) {
+    hero.x = oven.x + oven.width - hero.x
     }
     etc*/
 }
 
 void moveHero() {
-    if (GetAsyncKeyState('D') && GetAsyncKeyState('W')) {
-        if (collCase() == 3) {
-            hero.y = enemy.y + enemy.height + 1;
-        }
-        else if (collCase() == 1) {
-            hero.x = enemy.x - 1 - hero.width;
-        }
-        else {
+    //if (collCase() == 0) {
+    collCase();
+        if (GetAsyncKeyState('D') && GetAsyncKeyState('W')) {
+            /*if (collCase() == 3) {
+                hero.y = oven.y + oven.height + 1;
+            }
+            else if (collCase() == 1) {
+                hero.x = oven.x - 1 - hero.width;
+            }
+            else {
+                hero.x += hero.speed / sqrt(2);
+                hero.y -= hero.speed / sqrt(2);
+            }*/
             hero.x += hero.speed / sqrt(2);
             hero.y -= hero.speed / sqrt(2);
         }
-    }
-    else if (GetAsyncKeyState('W') && GetAsyncKeyState('A')) {
-        if (collCase() == 3) {
-            hero.y = enemy.y + enemy.height + 1;
-        }
-        else if (collCase() == 2) {
-            hero.x = enemy.x + enemy.width + 1;
-        }
-        else {
+        else if (GetAsyncKeyState('W') && GetAsyncKeyState('A')) {
+            /*if (collCase() == 3) {
+                hero.y = oven.y + oven.height + 1;
+            }
+            else if (collCase() == 2) {
+                hero.x = oven.x + oven.width + 1;
+            }
+            else {
+                hero.x -= hero.speed / sqrt(2);
+                hero.y -= hero.speed / sqrt(2);
+            }*/
             hero.x -= hero.speed / sqrt(2);
             hero.y -= hero.speed / sqrt(2);
         }
-    }
-    else if (GetAsyncKeyState('S') && GetAsyncKeyState('A')) {
-        if (collCase() == 4) {
-            hero.y = enemy.y - 1 - hero.height;
-        }
-        else if (collCase() == 2) {
-            hero.x = enemy.x + enemy.width + 1;
-        }
-        else {
+        else if (GetAsyncKeyState('S') && GetAsyncKeyState('A')) {
+            /*if (collCase() == 4) {
+                hero.y = oven.y - 1 - hero.height;
+            }
+            else if (collCase() == 2) {
+                hero.x = oven.x + oven.width + 1;
+            }
+            else {
+                hero.x -= hero.speed / sqrt(2);
+                hero.y += hero.speed / sqrt(2);
+            }*/
             hero.x -= hero.speed / sqrt(2);
             hero.y += hero.speed / sqrt(2);
         }
-    }
-    else if (GetAsyncKeyState('S') && GetAsyncKeyState('D')) {
-        if (collCase() == 4) {
-            hero.y = enemy.y - 1 - hero.height;
-        }
-        else if (collCase() == 1) {
-            hero.x = enemy.x - 1 - hero.width;
-        }
-        else {
+        else if (GetAsyncKeyState('S') && GetAsyncKeyState('D')) {
+            /*if (collCase() == 4) {
+                hero.y = oven.y - 1 - hero.height;
+            }
+            else if (collCase() == 1) {
+                hero.x = oven.x - 1 - hero.width;
+            }
+            else {
+                hero.x += hero.speed / sqrt(2);
+                hero.y += hero.speed / sqrt(2);
+            }*/
             hero.x += hero.speed / sqrt(2);
             hero.y += hero.speed / sqrt(2);
         }
-    }
-    else if (GetAsyncKeyState('D')) {
-        if (collCase() != 1) {
+        else if (GetAsyncKeyState('D')) {
+            /*if (collCase() != 1) {
+                hero.x += hero.speed;
+            }
+            else {
+                hero.x = oven.x - 1 - hero.width;
+            }*/
             hero.x += hero.speed;
         }
-        else {
-            hero.x = enemy.x - 1 - hero.width;
-        }
-    }
-    else if (GetAsyncKeyState('A')) {
-        if (collCase() != 2) {
+        else if (GetAsyncKeyState('A')) {
+            /*if (collCase() != 2) {
+                hero.x -= hero.speed;
+            }
+            else {
+                hero.x = oven.x + oven.width + 1;
+            }*/
             hero.x -= hero.speed;
         }
-        else {
-            hero.x = enemy.x + enemy.width + 1;
-        }
-    }
-    else if (GetAsyncKeyState('W')) {
-        if (collCase() != 3) {
+        else if (GetAsyncKeyState('W')) {
+            /*if (collCase() != 3) {
+                hero.y -= hero.speed;
+            }
+            else {
+                hero.y = oven.y + oven.height + 1;
+            }*/
             hero.y -= hero.speed;
         }
-        else {
-            hero.y = enemy.y + enemy.height + 1;
-        }
-    }
-    else if (GetAsyncKeyState('S')) {
-        if (collCase() != 4) {
+        else if (GetAsyncKeyState('S')) {
+            /*if (collCase() != 4) {
+                hero.y += hero.speed;
+            }
+            else {
+                hero.y = oven.y - 1 - hero.height;
+            }*/
             hero.y += hero.speed;
         }
-        else {
-            hero.y = enemy.y - 1 - hero.height;
-        }
-    }
+    
     if (hero.x < 0) {
         hero.x = 0;
     }
@@ -257,8 +338,30 @@ void moveHero() {
     if (hero.y + hero.height > window.height) {
         hero.y = window.height - hero.height;
     }
-    //hero.x, hero.y = coll(hero.x, hero.width, hero.y, hero.height, enemy.x, enemy.width, enemy.y, enemy.height);
+    //hero.x, hero.y = coll(hero.x, hero.width, hero.y, hero.height, oven.x, oven.width, oven.y, oven.height);
 
+}
+
+void moveEnemy() {
+    if (abs(enemy.x - hero.x) > 200 && abs(enemy.y - hero.y) > 200) {
+        if (enemy.x <= window.width / 4) {
+            enemy.y -= enemy.speed;
+        }
+        if (enemy.y <= 200) {
+            enemy.x += enemy.speed;
+        }
+        if (enemy.x >= window.width / 4 * 3) {
+            enemy.y += enemy.speed;
+        }
+        if (enemy.y >= window.height - 450) {
+            enemy.x -= enemy.speed;
+        }
+    }
+    else {
+        if (enemy.x - hero.x > 50) {
+            enemy.x += enemy.speed;
+        }
+    }
 }
 
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR  lpCmdLine, int  nCmdShow)
@@ -272,6 +375,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR  lpCm
     while (!GetAsyncKeyState(VK_ESCAPE))
     {
         moveHero();
+        moveEnemy();
         ShowRacketAndBall();//рисуем фон, ракетку и шарик
         BitBlt(window.device_context, 0, 0, window.width, window.height, window.context, 0, 0, SRCCOPY);//копируем буфер в окно
         Sleep(16);//ждем 16 милисекунд (1/количество кадров в секунду)
