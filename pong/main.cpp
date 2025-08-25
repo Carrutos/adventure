@@ -228,6 +228,7 @@ int collCase() {
     hero.x = oven.x + oven.width - hero.x
     }
     etc*/
+
 }
 
 void moveHero() {
