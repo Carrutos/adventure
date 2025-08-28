@@ -96,7 +96,7 @@ void InitGame()
     hero.speed = 10;
     hero.rad = 75;
 
-    enemy.x = window.width / 4;
+    enemy.x = window.width / 4 * 3 - 30;
     enemy.y = window.height - 200;
     enemy.speed = 5;
     enemy.height = 150;
@@ -169,7 +169,7 @@ void InitWindow()
 int coll(sprite b) {
     int score = 0;
     if (hero.x + hero.width >= b.x && hero.y < b.y + b.height && hero.y + hero.height > b.y && hero.x + hero.width <= b.x + hero.speed) {
-        score =  1;
+        score = 1;
     }
     else if (hero.x <= b.x + b.width && hero.y < b.y + b.height && hero.y + hero.height > b.y && hero.x >= b.x + b.width - hero.speed) {
         score = 2;
@@ -196,7 +196,7 @@ int coll(sprite b) {
 }
 
 int collCase() {
-    if (coll(table) != 0 || coll(statue1) != 0 || coll(statue2) != 0 || coll(statue3) != 0) {
+    if (coll(table) != 0 || coll(statue1) != 0 || coll(statue2) != 0 || coll(statue3) != 0 || coll(enemy) != 0) {
         return 1;
     }
     else {
@@ -231,101 +231,36 @@ int collCase() {
 }
 
 void moveHero() {
-    //if (collCase() == 0) {
     collCase();
-        if (GetAsyncKeyState('D') && GetAsyncKeyState('W')) {
-            /*if (collCase() == 3) {
-                hero.y = oven.y + oven.height + 1;
-            }
-            else if (collCase() == 1) {
-                hero.x = oven.x - 1 - hero.width;
-            }
-            else {
-                hero.x += hero.speed / sqrt(2);
-                hero.y -= hero.speed / sqrt(2);
-            }*/
-            hero.x += hero.speed / sqrt(2);
-            hero.y -= hero.speed / sqrt(2);
-        }
-        else if (GetAsyncKeyState('W') && GetAsyncKeyState('A')) {
-            /*if (collCase() == 3) {
-                hero.y = oven.y + oven.height + 1;
-            }
-            else if (collCase() == 2) {
-                hero.x = oven.x + oven.width + 1;
-            }
-            else {
-                hero.x -= hero.speed / sqrt(2);
-                hero.y -= hero.speed / sqrt(2);
-            }*/
-            hero.x -= hero.speed / sqrt(2);
-            hero.y -= hero.speed / sqrt(2);
-        }
-        else if (GetAsyncKeyState('S') && GetAsyncKeyState('A')) {
-            /*if (collCase() == 4) {
-                hero.y = oven.y - 1 - hero.height;
-            }
-            else if (collCase() == 2) {
-                hero.x = oven.x + oven.width + 1;
-            }
-            else {
-                hero.x -= hero.speed / sqrt(2);
-                hero.y += hero.speed / sqrt(2);
-            }*/
-            hero.x -= hero.speed / sqrt(2);
-            hero.y += hero.speed / sqrt(2);
-        }
-        else if (GetAsyncKeyState('S') && GetAsyncKeyState('D')) {
-            /*if (collCase() == 4) {
-                hero.y = oven.y - 1 - hero.height;
-            }
-            else if (collCase() == 1) {
-                hero.x = oven.x - 1 - hero.width;
-            }
-            else {
-                hero.x += hero.speed / sqrt(2);
-                hero.y += hero.speed / sqrt(2);
-            }*/
-            hero.x += hero.speed / sqrt(2);
-            hero.y += hero.speed / sqrt(2);
-        }
-        else if (GetAsyncKeyState('D')) {
-            /*if (collCase() != 1) {
-                hero.x += hero.speed;
-            }
-            else {
-                hero.x = oven.x - 1 - hero.width;
-            }*/
-            hero.x += hero.speed;
-        }
-        else if (GetAsyncKeyState('A')) {
-            /*if (collCase() != 2) {
-                hero.x -= hero.speed;
-            }
-            else {
-                hero.x = oven.x + oven.width + 1;
-            }*/
-            hero.x -= hero.speed;
-        }
-        else if (GetAsyncKeyState('W')) {
-            /*if (collCase() != 3) {
-                hero.y -= hero.speed;
-            }
-            else {
-                hero.y = oven.y + oven.height + 1;
-            }*/
-            hero.y -= hero.speed;
-        }
-        else if (GetAsyncKeyState('S')) {
-            /*if (collCase() != 4) {
-                hero.y += hero.speed;
-            }
-            else {
-                hero.y = oven.y - 1 - hero.height;
-            }*/
-            hero.y += hero.speed;
-        }
-    
+    if (GetAsyncKeyState('D') && GetAsyncKeyState('W')) {
+        hero.x += hero.speed / sqrt(2);
+        hero.y -= hero.speed / sqrt(2);
+    }
+    else if (GetAsyncKeyState('W') && GetAsyncKeyState('A')) {
+        hero.x -= hero.speed / sqrt(2);
+        hero.y -= hero.speed / sqrt(2);
+    }
+    else if (GetAsyncKeyState('S') && GetAsyncKeyState('A')) {
+        hero.x -= hero.speed / sqrt(2);
+        hero.y += hero.speed / sqrt(2);
+    }
+    else if (GetAsyncKeyState('S') && GetAsyncKeyState('D')) {
+        hero.x += hero.speed / sqrt(2);
+        hero.y += hero.speed / sqrt(2);
+    }
+    else if (GetAsyncKeyState('D')) {
+        hero.x += hero.speed;
+    }
+    else if (GetAsyncKeyState('A')) {
+        hero.x -= hero.speed;
+    }
+    else if (GetAsyncKeyState('W')) {
+        hero.y -= hero.speed;
+    }
+    else if (GetAsyncKeyState('S')) {
+        hero.y += hero.speed;
+    }
+
     if (hero.x < 0) {
         hero.x = 0;
     }
@@ -338,12 +273,11 @@ void moveHero() {
     if (hero.y + hero.height > window.height) {
         hero.y = window.height - hero.height;
     }
-    //hero.x, hero.y = coll(hero.x, hero.width, hero.y, hero.height, oven.x, oven.width, oven.y, oven.height);
 
 }
 
 void moveEnemy() {
-    if (abs(enemy.x - hero.x) > 200 && abs(enemy.y - hero.y) > 200) {
+    if (abs(enemy.x - hero.x) > 350 && abs(enemy.y - hero.y) > 350) {
         if (enemy.x <= window.width / 4) {
             enemy.y -= enemy.speed;
         }
@@ -358,8 +292,17 @@ void moveEnemy() {
         }
     }
     else {
-        if (enemy.x - hero.x > 50) {
+        if (enemy.x - hero.x > 180) {
+            enemy.x -= enemy.speed;
+        }
+        else if (hero.x - enemy.x > 180) {
             enemy.x += enemy.speed;
+        }
+        else if (enemy.y - hero.y > 180) {
+            enemy.y -= enemy.speed;
+        }
+        else if (hero.y - enemy.y > 180) {
+            enemy.y += enemy.speed;
         }
     }
 }
