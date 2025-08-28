@@ -8,7 +8,7 @@
 
 // секция данных игры  
 typedef struct {
-    float x, y, width, height, rad, dx, dy, speed;
+    float x, y, width, height, rad, dx, dy, speed, room;
     HBITMAP hBitmap;//хэндл к спрайту шарика 
 } sprite;
 
@@ -21,6 +21,16 @@ sprite statue2;
 sprite statue3;
 sprite table;
 sprite enemy;
+sprite table2;
+sprite man;
+sprite halva;
+
+struct item {
+    int picked = 0;
+    int room;
+};
+
+item iHalva;
 
 struct {
     int score, balls;//количество набранных очков и оставшихся "жизней"
@@ -31,6 +41,8 @@ struct {
     HWND hWnd;//хэндл окна
     HDC device_context, context;// два контекста устройства (для буферизации)
     int width, height;//сюда сохраним размеры окна которое создаст программа
+    int x = 1500;
+    int y = -1000;
 } window;
 
 HBITMAP hBack;// хэндл для фонового изображения
@@ -51,6 +63,9 @@ void InitGame()
     statue2.hBitmap = (HBITMAP)LoadImageA(NULL, "statue2.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     statue3.hBitmap = (HBITMAP)LoadImageA(NULL, "statue3.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     enemy.hBitmap = (HBITMAP)LoadImageA(NULL, "racket.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    table2.hBitmap = (HBITMAP)LoadImageA(NULL, "table.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    man.hBitmap = (HBITMAP)LoadImageA(NULL, "statue2.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    halva.hBitmap = (HBITMAP)LoadImageA(NULL, "racket.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     hBack = (HBITMAP)LoadImageA(NULL, "marblefloor.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     //------------------------------------------------------
 
@@ -95,12 +110,34 @@ void InitGame()
     hero.width = 150;
     hero.speed = 10;
     hero.rad = 75;
+    hero.room = 1;
 
     enemy.x = window.width / 4 * 3 - 30;
     enemy.y = window.height - 200;
     enemy.speed = 5;
     enemy.height = 150;
     enemy.width = 150;
+
+    table2.x = window.width / 4;
+    table2.y = window.height / 3;
+    table2.width = window.width / 2;
+    table2.height = window.height / 3;
+
+    man.x = window.width / 4 - 150;
+    man.y = window.height / 2;
+    man.width = 150;
+    man.height = 200;
+
+    if (hero.room == 1) {
+        halva.x = 567;
+        halva.y = 678;
+    }
+    else {
+        halva.x = -100;
+        halva.y = -100;
+    }
+    halva.height = 50;
+    halva.width = 50;
 
     game.score = 0;
     game.balls = 9;
@@ -136,7 +173,7 @@ void ShowBitmap(HDC hDC, int x, int y, int x1, int y1, HBITMAP hBitmapBall, bool
     DeleteDC(hMemDC); // Удаляем контекст памяти
 }
 
-void ShowRacketAndBall()
+void LocOne()
 {
     ShowBitmap(window.context, 0, 0, window.width, window.height, hBack);//задний фон
     ShowBitmap(window.context, hero.x, hero.y, 2 * hero.rad, 2 * hero.rad, hero.hBitmap);
@@ -148,6 +185,22 @@ void ShowRacketAndBall()
     ShowBitmap(window.context, statue2.x, statue2.y, statue2.width, statue2.height, statue2.hBitmap);
     ShowBitmap(window.context, statue3.x, statue3.y, statue3.width, statue3.height, statue3.hBitmap);
     ShowBitmap(window.context, enemy.x, enemy.y, enemy.width, enemy.height, enemy.hBitmap);
+    ShowBitmap(window.context, halva.x, halva.y, halva.width, halva.height, halva.hBitmap);
+}
+
+void LocTwo() {
+    ShowBitmap(window.context, 0, 0, window.width, window.height, hBack);//задний фон
+    ShowBitmap(window.context, hero.x, hero.y, 2 * hero.rad, 2 * hero.rad, hero.hBitmap);
+    ShowBitmap(window.context, table2.x, table2.y, table2.width, table2.height, table2.hBitmap);
+    ShowBitmap(window.context, man.x, man.y, man.width, man.height, man.hBitmap);
+    if (iHalva.picked == 1 || iHalva.room == 2) {
+        ShowBitmap(window.context, halva.x, halva.y, halva.width, halva.height, halva.hBitmap);
+    }
+}
+
+void LocThree() {
+    ShowBitmap(window.context, window.x, window.y, 700, 4000, hBack);//задний фон
+    ShowBitmap(window.context, hero.x, hero.y, 2 * hero.rad, 2 * hero.rad, hero.hBitmap);
 }
 
 void InitWindow()
@@ -196,7 +249,10 @@ int coll(sprite b) {
 }
 
 int collCase() {
-    if (coll(table) != 0 || coll(statue1) != 0 || coll(statue2) != 0 || coll(statue3) != 0 || coll(enemy) != 0) {
+    if (hero.room == 1 && (coll(table) != 0 || coll(statue1) != 0 || coll(statue2) != 0 || coll(statue3) != 0 || coll(enemy) != 0)) {
+        return 1;
+    }
+    else if (hero.room == 2 && (coll(table2) != 0 || coll(man) != 0)) {
         return 1;
     }
     else {
@@ -256,10 +312,20 @@ void moveHero() {
         hero.x -= hero.speed;
     }
     else if (GetAsyncKeyState('W')) {
-        hero.y -= hero.speed;
+        if (hero.room == 3 && window.y <= 0) {
+            window.y += hero.speed;
+        }
+        else {
+            hero.y -= hero.speed;
+        }
     }
     else if (GetAsyncKeyState('S')) {
-        hero.y += hero.speed;
+        if (hero.room == 3 && window.y >= -4000 + window.height) {
+            window.y -= hero.speed;
+        }
+        else {
+            hero.y += hero.speed;
+        }
     }
 
     if (hero.x < 0) {
@@ -274,11 +340,18 @@ void moveHero() {
     if (hero.y + hero.height > window.height) {
         hero.y = window.height - hero.height;
     }
-
+    if (hero.room == 1 && hero.y >= window.height / 3 && hero.y <= window.height / 2 && hero.x >= window.width - 150) {
+        hero.room = 2;
+        hero.x = 20;
+    }
+    else if (hero.room == 2 && hero.y >= window.height / 3 && hero.y <= window.height / 2 && hero.x <= 0) {
+        hero.room = 1;
+        hero.x = window.width - 170;
+    }
 }
 
 void moveEnemy() {
-    if (abs(enemy.x - hero.x) > 350 && abs(enemy.y - hero.y) > 350) {
+    if (abs(enemy.x - hero.x) > 350 || abs(enemy.y - hero.y) > 350) {
         if (enemy.x <= window.width / 4) {
             enemy.y -= enemy.speed;
         }
@@ -308,6 +381,22 @@ void moveEnemy() {
     }
 }
 
+void pickDropItem() {
+    int slot = 0;
+    if (halva.x >= hero.x && halva.x + halva.width <= hero.x + hero.width && halva.y >= hero.y && halva.y + halva.height <= hero.y + hero.height && GetAsyncKeyState('E') && slot == 0) {
+        halva.x = window.width - 70;
+        halva.y = window.height - 70;
+        iHalva.picked = 1;
+    }
+    if (iHalva.picked == 1 && GetAsyncKeyState('R')) {
+        halva.x = hero.x;
+        halva.y = hero.y;
+        slot = 0;
+        iHalva.picked = 0;
+        iHalva.room = hero.room;
+    }
+}
+
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR  lpCmdLine, int  nCmdShow)
 {
 
@@ -318,9 +407,18 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR  lpCm
 
     while (!GetAsyncKeyState(VK_ESCAPE))
     {
+        if (hero.room == 1) {
+            LocOne();
+        }
+        if (hero.room == 2) {
+            LocTwo();
+        }
+        if (hero.room == 3) {
+            LocThree();
+        }
         moveHero();
         moveEnemy();
-        ShowRacketAndBall();//рисуем фон, ракетку и шарик
+        pickDropItem();
         BitBlt(window.device_context, 0, 0, window.width, window.height, window.context, 0, 0, SRCCOPY);//копируем буфер в окно
         Sleep(16);//ждем 16 милисекунд (1/количество кадров в секунду)
     }
