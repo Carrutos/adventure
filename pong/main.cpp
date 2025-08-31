@@ -8,7 +8,8 @@
 
 // секция данных игры  
 typedef struct {
-    float x, y, width, height, rad, dx, dy, speed, room;
+    float x, y, width, height, rad, dx, dy, speed;
+    int room;
     HBITMAP hBitmap;//хэндл к спрайту шарика 
 } sprite;
 
@@ -25,9 +26,11 @@ sprite table2;
 sprite man;
 
 struct item {
-    float x, y = -100;
+    float x = -100;
+    float y = -100;
     int room;
-    float width, height = 70;
+    float width = 70;
+    float height = 70;
     int picked = 0;
     HBITMAP hBitmap;//хэндл к спрайту
 };
@@ -45,11 +48,21 @@ struct {
     HDC device_context, context;// два контекста устройства (для буферизации)
     int width, height;//сюда сохраним размеры окна, которое создаст программа
     // x, y for third location;
-    int x = 1500;
+    int x = 1200;
     int y = -1000;
 } window;
 
 HBITMAP hBack;// хэндл для фонового изображения
+HBITMAP hStove;
+HBITMAP hCloset;
+
+void setText() {
+    SetTextColor(window.context, RGB(200, 200, 250));
+    //SetBkColor(window.context, RGB(0, 0, 0));
+    SetBkMode(window.context, TRANSPARENT);
+    auto hFont = CreateFont(50, 0, 0, 0, FW_BOLD, 0, 0, 0, 0, 0, 0, 10, 0, "CALIBRI");
+    auto hTmp = (HFONT)SelectObject(window.context, hFont);
+}
 
 //cекция кода
 
@@ -71,10 +84,9 @@ void InitGame()
     man.hBitmap = (HBITMAP)LoadImageA(NULL, "statue2.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     halva.hBitmap = (HBITMAP)LoadImageA(NULL, "racket.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     key.hBitmap = (HBITMAP)LoadImageA(NULL, "ball.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    hStove = (HBITMAP)LoadImageA(NULL, "locfive.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    hCloset = (HBITMAP)LoadImageA(NULL, "locfour.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     hBack = (HBITMAP)LoadImageA(NULL, "marblefloor.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-    if (hero.room == 5) {
-        hBack = (HBITMAP)LoadImageA(NULL, "stove.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-    }
 
     fridge.width = 200;
     fridge.height = 200;
@@ -141,14 +153,24 @@ void InitGame()
     }
 
     if (hero.room == 3) {
-        key.x = 1700;
-        key.y = -200;
+        key.x = 1500;
+        key.y = 478;
+    }
+
+    if (hero.room == 5) {
+        halva.x = 567;
+        halva.y = 678;
     }
 
     game.score = 0;
     game.balls = 9;
 
 
+}
+
+void ProcessSound(const char* name)//проигрывание аудиофайла в формате .wav, файл должен лежать в той же папке где и программа
+{
+    PlaySound(TEXT(name), NULL, SND_FILENAME | SND_ASYNC);//переменная name содежрит имя файла. флаг ASYNC позволяет проигрывать звук паралельно с исполнением программы
 }
 
 void ShowBitmap(HDC hDC, int x, int y, int x1, int y1, HBITMAP hBitmapBall, bool alpha = false)
@@ -192,6 +214,8 @@ void LocOne()
     ShowBitmap(window.context, statue3.x, statue3.y, statue3.width, statue3.height, statue3.hBitmap);
     ShowBitmap(window.context, enemy.x, enemy.y, enemy.width, enemy.height, enemy.hBitmap);
     ShowBitmap(window.context, halva.x, halva.y, halva.width, halva.height, halva.hBitmap);
+    TextOutA(window.context, 1600, 100, "coridor", 7);
+    TextOutA(window.context, 100, 500, "closet", 6);
 } // kitchen
 
 void LocTwo() {
@@ -199,27 +223,64 @@ void LocTwo() {
     ShowBitmap(window.context, hero.x, hero.y, 2 * hero.rad, 2 * hero.rad, hero.hBitmap);
     ShowBitmap(window.context, table2.x, table2.y, table2.width, table2.height, table2.hBitmap);
     ShowBitmap(window.context, man.x, man.y, man.width, man.height, man.hBitmap);
-    if (halva.picked == 1 || halva.room == 2) {
-        ShowBitmap(window.context, halva.x, halva.y, halva.width, halva.height, halva.hBitmap);
-    }
 } // man's room
 
 void LocThree() {
     ShowBitmap(window.context, window.x, window.y, 700, 4000, hBack);//задний фон
     ShowBitmap(window.context, hero.x, hero.y, 2 * hero.rad, 2 * hero.rad, hero.hBitmap);
+    ShowBitmap(window.context, key.x, key.y, key.width, key.height, key.hBitmap);
 } // coridor
 
 void LocFour() {
-    ShowBitmap(window.context, 1100, 0, window.width, window.height, hBack);//задний фон
+    ShowBitmap(window.context, 0, 0, window.width, window.height, hCloset);//задний фон
     ShowBitmap(window.context, hero.x, hero.y, 2 * hero.rad, 2 * hero.rad, hero.hBitmap);
-    if (halva.picked == 1 || halva.room == 4) {
-        ShowBitmap(window.context, halva.x, halva.y, halva.width, halva.height, halva.hBitmap);
-    }
-} // closet
+} // closet: x (1100 - ww)
 
 void LocFive() {
-    ShowBitmap(window.context, window.width - window.height - (window.width - window.height / 2), 0, window.width, window.height, hBack);
+    ShowBitmap(window.context, 0, 0, window.width, window.height, hStove);
     ShowBitmap(window.context, halva.x, halva.y, halva.width, halva.height, halva.hBitmap);
+} // brokenstove
+
+void LocSix() {
+    ShowBitmap(window.context, 0, 0, window.width, window.height, hStove);
+    ShowBitmap(window.context, hero.x, hero.y, 2 * hero.rad, 2 * hero.rad, hero.hBitmap);
+} // utility room
+
+void LocSeven() {
+    ShowBitmap(window.context, 0, 0, window.width, window.height, hStove);
+    ShowBitmap(window.context, hero.x, hero.y, 2 * hero.rad, 2 * hero.rad, hero.hBitmap);
+} // closet1
+
+void LocEight() {
+    ShowBitmap(window.context, 0, 0, window.width, window.height, hStove);
+    ShowBitmap(window.context, hero.x, hero.y, 2 * hero.rad, 2 * hero.rad, hero.hBitmap);
+} // closet2
+
+void LocNine() {
+    ShowBitmap(window.context, 0, 0, window.width, window.height, hStove);
+    ShowBitmap(window.context, hero.x, hero.y, 2 * hero.rad, 2 * hero.rad, hero.hBitmap);
+} // pool
+
+void LocTen() {
+    ShowBitmap(window.context, 0, 0, window.width, window.height, hStove);
+    ShowBitmap(window.context, hero.x, hero.y, 2 * hero.rad, 2 * hero.rad, hero.hBitmap);
+} // ice room
+
+void LocEleven() {
+    ShowBitmap(window.context, 0, 0, window.width, window.height, hStove);
+} // oven
+
+void LocTwelve() {
+    ShowBitmap(window.context, 0, 0, window.width, window.height, hStove);
+} // fridge
+
+void LocPickedItems() {
+    if (halva.picked == 1) {
+        ShowBitmap(window.context, halva.x, halva.y, halva.width, halva.height, halva.hBitmap);
+    }
+    if (key.picked == 1) {
+        ShowBitmap(window.context, key.x, key.y, key.width, key.height, key.hBitmap);
+    }
 }
 
 void InitWindow()
@@ -307,8 +368,6 @@ int collCase() {
 }
 
 void moveHero() {
-    // collision
-    collCase();
     // hero's movement
     if (GetAsyncKeyState('D') && GetAsyncKeyState('W')) {
         hero.x += hero.speed / sqrt(2);
@@ -335,6 +394,7 @@ void moveHero() {
     else if (GetAsyncKeyState('W')) {
         if (hero.room == 3 && window.y <= 0) {
             window.y += hero.speed;
+            //key.y += hero.speed;
         }
         else {
             hero.y -= hero.speed;
@@ -343,14 +403,20 @@ void moveHero() {
     else if (GetAsyncKeyState('S')) {
         if (hero.room == 3 && window.y >= -4000 + window.height) {
             window.y -= hero.speed;
+            //key.y -= hero.speed;
         }
         else {
             hero.y += hero.speed;
         }
     }
+    // collision
+    collCase();
     // wall collision
     if (hero.x < 0) {
         hero.x = 0;
+    }
+    if (hero.room == 4 && hero.x < 1100) {
+        hero.x = 1100;
     }
     if (hero.x + hero.width > window.width) {
         hero.x = window.width - hero.width;
@@ -366,11 +432,11 @@ void moveHero() {
         hero.room = 2;
         hero.x = 20;
     }
-    else if (hero.room == 1 && hero.x >= window.width / 2 && hero.x <= window.width / 3 * 2 && hero.y <= 0) {
+    else if (hero.room == 1 && hero.x >= window.width / 3 * 2 && hero.x <= window.width / 4 * 3 && hero.y <= 0) {
         hero.room = 3;
         hero.y = window.height - 170;
     }
-    else if (hero.room == 1 && hero.y >= window.height / 3 && hero.y <= window.height / 2 && hero.x <= 150) {
+    else if (hero.room == 1 && hero.y >= window.height / 3 && hero.y <= window.height / 2 && hero.x <= 0) {
         hero.room = 4;
         hero.x = window.width - 170;
     }
@@ -381,11 +447,11 @@ void moveHero() {
         hero.room = 1;
         hero.x = window.width - 170;
     }
-    else if (hero.room == 3 && hero.x >= window.width / 2 && hero.x <= window.width / 3 * 2 && hero.y >= window.height) {
+    else if (hero.room == 3 && hero.x >= window.width / 3 * 2 && hero.x <= window.width / 4 * 3 && hero.y >= window.height - 150) {
         hero.room = 1;
         hero.y = 20;
     }
-    else if (hero.room == 4 && hero.y >= window.height / 3 && hero.y <= window.height / 2 && hero.x >= window.width) {
+    else if (hero.room == 4 && hero.y >= window.height / 3 && hero.y <= window.height / 2 && hero.x >= window.width - 150) {
         hero.room = 1;
         hero.x = 20;
     }
@@ -422,20 +488,57 @@ void moveEnemy() {
     }
 }
 
-void pickDropItem() {
-    int slot = 0;
-    if (halva.x >= hero.x && halva.x + halva.width <= hero.x + hero.width && halva.y >= hero.y && halva.y + halva.height <= hero.y + hero.height && GetAsyncKeyState('E') && slot == 0) {
-        halva.x = window.width - 70;
-        halva.y = window.height - 70;
-        halva.picked = 1;
+int pickCase(item ite, int slot) {
+    if (ite.x >= hero.x && ite.x + ite.width <= hero.x + hero.width && ite.y >= hero.y && ite.y + ite.height <= hero.y + hero.height) {
+        if (slot == 1) {
+            ite.x = window.width - 80;
+            ite.y = window.height - 80;
+            return 1;
+        }
+        else if (slot == 2) {
+            ite.x = window.width - 180;
+            ite.y = window.height - 80;
+            return 2;
+        }
+        else if (slot == 3) {
+            ite.x = window.width - 280;
+            ite.y = window.height - 80;
+            return 3;
+        }
+        ite.picked = 1;
     }
-    if (halva.picked == 1 && GetAsyncKeyState('R')) {
-        halva.x = hero.x;
-        halva.y = hero.y;
-        slot = 0;
-        halva.picked = 0;
-        halva.room = hero.room;
+}
+
+void dropCase(item ite) {
+    if (ite.picked == 1 && GetAsyncKeyState('T') && hero.room != 3) {
+        ite.x = hero.x;
+        ite.y = hero.y;
+        ite.picked = 0;
+        ite.room = hero.room;
     }
+}
+
+int pickItem(int s1, int s2, int s3) {
+    int slot0 = 0;
+    if (s1 == 1) {
+        slot0 = 1;
+    }
+    else if (s2 == 1) {
+        slot0 = 2;
+    }
+    else if (s3 == 1) {
+        slot0 = 3;
+    }
+    if (pickCase(halva, slot0) == 1) {
+        s1 = 1;
+    }
+    else if (pickCase(halva, slot0) == 2) {
+        s2 = 1;
+    }
+    else if (pickCase(halva, slot0) == 3) {
+        s3 = 1;
+    }
+    return s1, s2, s3;
 }
 
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR  lpCmdLine, int  nCmdShow)
@@ -445,27 +548,41 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR  lpCm
     InitGame();//здесь инициализируем переменные игры
 
     ShowCursor(NULL);
+    setText();
+    int slot1 = 0;
+    int slot2 = 0;
+    int slot3 = 0;
 
     while (!GetAsyncKeyState(VK_ESCAPE))
     {
-        if (hero.room == 1) {
+        switch (hero.room) {
+        case 1: {
             LocOne();
+            break;
         }
-        else if (hero.room == 2) {
+        case 2: {
             LocTwo();
+            break;
         }
-        else if (hero.room == 3) {
+        case 3: {
             LocThree();
+            break;
         }
-        else if (hero.room == 4) {
+        case 4: {
             LocFour();
+            break;
         }
-        else if (hero.room == 5) {
+        case 5: {
             LocFive();
+            break;
         }
+        }
+        LocPickedItems();
         moveHero();
         moveEnemy();
-        pickDropItem();
+        if (GetAsyncKeyState('E')) {
+            pickItem(slot1, slot2, slot3);
+        }
         BitBlt(window.device_context, 0, 0, window.width, window.height, window.context, 0, 0, SRCCOPY);//копируем буфер в окно
         Sleep(16);//ждем 16 милисекунд (1/количество кадров в секунду)
     }
