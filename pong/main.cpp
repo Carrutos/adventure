@@ -23,14 +23,17 @@ sprite table;
 sprite enemy;
 sprite table2;
 sprite man;
-sprite halva;
 
 struct item {
-    int picked = 0;
+    float x, y = -100;
     int room;
+    float width, height = 70;
+    int picked = 0;
+    HBITMAP hBitmap;//хэндл к спрайту
 };
 
-item iHalva;
+item halva;
+item key;
 
 struct {
     int score, balls;//количество набранных очков и оставшихся "жизней"
@@ -40,7 +43,8 @@ struct {
 struct {
     HWND hWnd;//хэндл окна
     HDC device_context, context;// два контекста устройства (для буферизации)
-    int width, height;//сюда сохраним размеры окна которое создаст программа
+    int width, height;//сюда сохраним размеры окна, которое создаст программа
+    // x, y for third location;
     int x = 1500;
     int y = -1000;
 } window;
@@ -66,8 +70,11 @@ void InitGame()
     table2.hBitmap = (HBITMAP)LoadImageA(NULL, "table.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     man.hBitmap = (HBITMAP)LoadImageA(NULL, "statue2.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     halva.hBitmap = (HBITMAP)LoadImageA(NULL, "racket.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    key.hBitmap = (HBITMAP)LoadImageA(NULL, "ball.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     hBack = (HBITMAP)LoadImageA(NULL, "marblefloor.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-    //------------------------------------------------------
+    if (hero.room == 5) {
+        hBack = (HBITMAP)LoadImageA(NULL, "stove.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    }
 
     fridge.width = 200;
     fridge.height = 200;
@@ -132,12 +139,11 @@ void InitGame()
         halva.x = 567;
         halva.y = 678;
     }
-    else {
-        halva.x = -100;
-        halva.y = -100;
+
+    if (hero.room == 3) {
+        key.x = 1700;
+        key.y = -200;
     }
-    halva.height = 50;
-    halva.width = 50;
 
     game.score = 0;
     game.balls = 9;
@@ -186,21 +192,34 @@ void LocOne()
     ShowBitmap(window.context, statue3.x, statue3.y, statue3.width, statue3.height, statue3.hBitmap);
     ShowBitmap(window.context, enemy.x, enemy.y, enemy.width, enemy.height, enemy.hBitmap);
     ShowBitmap(window.context, halva.x, halva.y, halva.width, halva.height, halva.hBitmap);
-}
+} // kitchen
 
 void LocTwo() {
     ShowBitmap(window.context, 0, 0, window.width, window.height, hBack);//задний фон
     ShowBitmap(window.context, hero.x, hero.y, 2 * hero.rad, 2 * hero.rad, hero.hBitmap);
     ShowBitmap(window.context, table2.x, table2.y, table2.width, table2.height, table2.hBitmap);
     ShowBitmap(window.context, man.x, man.y, man.width, man.height, man.hBitmap);
-    if (iHalva.picked == 1 || iHalva.room == 2) {
+    if (halva.picked == 1 || halva.room == 2) {
         ShowBitmap(window.context, halva.x, halva.y, halva.width, halva.height, halva.hBitmap);
     }
-}
+} // man's room
 
 void LocThree() {
     ShowBitmap(window.context, window.x, window.y, 700, 4000, hBack);//задний фон
     ShowBitmap(window.context, hero.x, hero.y, 2 * hero.rad, 2 * hero.rad, hero.hBitmap);
+} // coridor
+
+void LocFour() {
+    ShowBitmap(window.context, 1100, 0, window.width, window.height, hBack);//задний фон
+    ShowBitmap(window.context, hero.x, hero.y, 2 * hero.rad, 2 * hero.rad, hero.hBitmap);
+    if (halva.picked == 1 || halva.room == 4) {
+        ShowBitmap(window.context, halva.x, halva.y, halva.width, halva.height, halva.hBitmap);
+    }
+} // closet
+
+void LocFive() {
+    ShowBitmap(window.context, window.width - window.height - (window.width - window.height / 2), 0, window.width, window.height, hBack);
+    ShowBitmap(window.context, halva.x, halva.y, halva.width, halva.height, halva.hBitmap);
 }
 
 void InitWindow()
@@ -224,25 +243,25 @@ int coll(sprite b) {
     if (hero.x + hero.width >= b.x && hero.y < b.y + b.height && hero.y + hero.height > b.y && hero.x + hero.width <= b.x + hero.speed) {
         score = 1;
     }
-    else if (hero.x <= b.x + b.width && hero.y < b.y + b.height && hero.y + hero.height > b.y && hero.x >= b.x + b.width - hero.speed) {
+    if (hero.x <= b.x + b.width && hero.y < b.y + b.height && hero.y + hero.height > b.y && hero.x >= b.x + b.width - hero.speed) {
         score = 2;
     }
-    else if (hero.y <= b.y + b.height && hero.x < b.x + b.width && hero.x + hero.width > b.x && hero.y >= b.y + b.height - hero.speed) {
+    if (hero.y <= b.y + b.height && hero.x < b.x + b.width && hero.x + hero.width > b.x && hero.y >= b.y + b.height - hero.speed) {
         score = 3;
     }
-    else if (hero.y + hero.height >= b.y && hero.x < b.x + b.width && hero.x + hero.width > b.x && hero.y + hero.height <= b.y + hero.speed) {
+    if (hero.y + hero.height >= b.y && hero.x < b.x + b.width && hero.x + hero.width > b.x && hero.y + hero.height <= b.y + hero.speed) {
         score = 4;
     }
     if (score == 1) {
         hero.x = b.x - 1 - hero.width;
     }
-    else if (score == 2) {
+    if (score == 2) {
         hero.x = b.x + b.width + 1;
     }
-    else if (score == 3) {
+    if (score == 3) {
         hero.y = b.y + b.height + 1;
     }
-    else if (score == 4) {
+    if (score == 4) {
         hero.y = b.y - 1 - hero.height;
     }
     return score;
@@ -288,7 +307,9 @@ int collCase() {
 }
 
 void moveHero() {
+    // collision
     collCase();
+    // hero's movement
     if (GetAsyncKeyState('D') && GetAsyncKeyState('W')) {
         hero.x += hero.speed / sqrt(2);
         hero.y -= hero.speed / sqrt(2);
@@ -327,7 +348,7 @@ void moveHero() {
             hero.y += hero.speed;
         }
     }
-
+    // wall collision
     if (hero.x < 0) {
         hero.x = 0;
     }
@@ -340,13 +361,33 @@ void moveHero() {
     if (hero.y + hero.height > window.height) {
         hero.y = window.height - hero.height;
     }
+    // room traverse
     if (hero.room == 1 && hero.y >= window.height / 3 && hero.y <= window.height / 2 && hero.x >= window.width - 150) {
         hero.room = 2;
         hero.x = 20;
     }
+    else if (hero.room == 1 && hero.x >= window.width / 2 && hero.x <= window.width / 3 * 2 && hero.y <= 0) {
+        hero.room = 3;
+        hero.y = window.height - 170;
+    }
+    else if (hero.room == 1 && hero.y >= window.height / 3 && hero.y <= window.height / 2 && hero.x <= 150) {
+        hero.room = 4;
+        hero.x = window.width - 170;
+    }
+    else if (hero.room == 1 && hero.x > 200 && hero.x + hero.width < 400 && hero.y < 200) {
+        hero.room = 5;
+    }
     else if (hero.room == 2 && hero.y >= window.height / 3 && hero.y <= window.height / 2 && hero.x <= 0) {
         hero.room = 1;
         hero.x = window.width - 170;
+    }
+    else if (hero.room == 3 && hero.x >= window.width / 2 && hero.x <= window.width / 3 * 2 && hero.y >= window.height) {
+        hero.room = 1;
+        hero.y = 20;
+    }
+    else if (hero.room == 4 && hero.y >= window.height / 3 && hero.y <= window.height / 2 && hero.x >= window.width) {
+        hero.room = 1;
+        hero.x = 20;
     }
 }
 
@@ -386,14 +427,14 @@ void pickDropItem() {
     if (halva.x >= hero.x && halva.x + halva.width <= hero.x + hero.width && halva.y >= hero.y && halva.y + halva.height <= hero.y + hero.height && GetAsyncKeyState('E') && slot == 0) {
         halva.x = window.width - 70;
         halva.y = window.height - 70;
-        iHalva.picked = 1;
+        halva.picked = 1;
     }
-    if (iHalva.picked == 1 && GetAsyncKeyState('R')) {
+    if (halva.picked == 1 && GetAsyncKeyState('R')) {
         halva.x = hero.x;
         halva.y = hero.y;
         slot = 0;
-        iHalva.picked = 0;
-        iHalva.room = hero.room;
+        halva.picked = 0;
+        halva.room = hero.room;
     }
 }
 
@@ -410,11 +451,17 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR  lpCm
         if (hero.room == 1) {
             LocOne();
         }
-        if (hero.room == 2) {
+        else if (hero.room == 2) {
             LocTwo();
         }
-        if (hero.room == 3) {
+        else if (hero.room == 3) {
             LocThree();
+        }
+        else if (hero.room == 4) {
+            LocFour();
+        }
+        else if (hero.room == 5) {
+            LocFive();
         }
         moveHero();
         moveEnemy();
