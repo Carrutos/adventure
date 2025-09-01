@@ -163,9 +163,6 @@ void InitGame()
     }
 
     game.score = 0;
-    game.balls = 9;
-
-
 }
 
 void ProcessSound(const char* name)//проигрывание аудиофайла в формате .wav, файл должен лежать в той же папке где и программа
@@ -242,36 +239,36 @@ void LocFive() {
 } // brokenstove
 
 void LocSix() {
-    ShowBitmap(window.context, 0, 0, window.width, window.height, hStove);
+    ShowBitmap(window.context, 0, 0, window.width, window.height, hBack);
     ShowBitmap(window.context, hero.x, hero.y, 2 * hero.rad, 2 * hero.rad, hero.hBitmap);
 } // utility room
 
 void LocSeven() {
-    ShowBitmap(window.context, 0, 0, window.width, window.height, hStove);
+    ShowBitmap(window.context, 0, 0, window.width, window.height, hBack);
     ShowBitmap(window.context, hero.x, hero.y, 2 * hero.rad, 2 * hero.rad, hero.hBitmap);
 } // closet1
 
 void LocEight() {
-    ShowBitmap(window.context, 0, 0, window.width, window.height, hStove);
+    ShowBitmap(window.context, 0, 0, window.width, window.height, hBack);
     ShowBitmap(window.context, hero.x, hero.y, 2 * hero.rad, 2 * hero.rad, hero.hBitmap);
 } // closet2
 
 void LocNine() {
-    ShowBitmap(window.context, 0, 0, window.width, window.height, hStove);
+    ShowBitmap(window.context, 0, 0, window.width, window.height, hBack);
     ShowBitmap(window.context, hero.x, hero.y, 2 * hero.rad, 2 * hero.rad, hero.hBitmap);
 } // pool
 
 void LocTen() {
-    ShowBitmap(window.context, 0, 0, window.width, window.height, hStove);
+    ShowBitmap(window.context, 0, 0, window.width, window.height, hBack);
     ShowBitmap(window.context, hero.x, hero.y, 2 * hero.rad, 2 * hero.rad, hero.hBitmap);
 } // ice room
 
 void LocEleven() {
-    ShowBitmap(window.context, 0, 0, window.width, window.height, hStove);
+    ShowBitmap(window.context, 0, 0, window.width, window.height, hBack);
 } // oven
 
 void LocTwelve() {
-    ShowBitmap(window.context, 0, 0, window.width, window.height, hStove);
+    ShowBitmap(window.context, 0, 0, window.width, window.height, hBack);
 } // fridge
 
 void LocPickedItems() {
@@ -299,44 +296,35 @@ void InitWindow()
 
 }
 
-int coll(sprite b) {
-    int score = 0;
+void coll(sprite b) {
     if (hero.x + hero.width >= b.x && hero.y < b.y + b.height && hero.y + hero.height > b.y && hero.x + hero.width <= b.x + hero.speed) {
-        score = 1;
-    }
-    if (hero.x <= b.x + b.width && hero.y < b.y + b.height && hero.y + hero.height > b.y && hero.x >= b.x + b.width - hero.speed) {
-        score = 2;
-    }
-    if (hero.y <= b.y + b.height && hero.x < b.x + b.width && hero.x + hero.width > b.x && hero.y >= b.y + b.height - hero.speed) {
-        score = 3;
-    }
-    if (hero.y + hero.height >= b.y && hero.x < b.x + b.width && hero.x + hero.width > b.x && hero.y + hero.height <= b.y + hero.speed) {
-        score = 4;
-    }
-    if (score == 1) {
         hero.x = b.x - 1 - hero.width;
     }
-    if (score == 2) {
+    if (hero.x <= b.x + b.width && hero.y < b.y + b.height && hero.y + hero.height > b.y && hero.x >= b.x + b.width - hero.speed) {
         hero.x = b.x + b.width + 1;
     }
-    if (score == 3) {
+    if (hero.y <= b.y + b.height && hero.x < b.x + b.width && hero.x + hero.width > b.x && hero.y >= b.y + b.height - hero.speed) {
         hero.y = b.y + b.height + 1;
     }
-    if (score == 4) {
+    if (hero.y + hero.height >= b.y && hero.x < b.x + b.width && hero.x + hero.width > b.x && hero.y + hero.height <= b.y + hero.speed) {
         hero.y = b.y - 1 - hero.height;
     }
-    return score;
 }
 
-int collCase() {
-    if (hero.room == 1 && (coll(table) != 0 || coll(statue1) != 0 || coll(statue2) != 0 || coll(statue3) != 0 || coll(enemy) != 0)) {
-        return 1;
+void collCase() {
+    if (hero.room == 1) {
+        coll(table);
+        coll(statue1);
+        coll(statue2);
+        coll(statue3);
+        coll(enemy);
     }
-    else if (hero.room == 2 && (coll(table2) != 0 || coll(man) != 0)) {
-        return 1;
+    else if (hero.room == 2) {
+        coll(table2);
+        coll(man);
     }
     else {
-        return 0;
+        
     }
     /*if (hero.x + hero.width >= oven.x && hero.y < oven.y + oven.height && hero.y + hero.height > oven.y && hero.x + hero.width <= oven.x + hero.speed) {
         return 1;
@@ -415,7 +403,7 @@ void moveHero() {
     if (hero.x < 0) {
         hero.x = 0;
     }
-    if (hero.room == 4 && hero.x < 1100) {
+    if (hero.room == 4 && hero.x < window.height) {
         hero.x = 1100;
     }
     if (hero.x + hero.width > window.width) {
@@ -440,9 +428,19 @@ void moveHero() {
         hero.room = 4;
         hero.x = window.width - 170;
     }
+    else if (hero.room == 1 && hero.x >= window.width / 3 * 2 && hero.x <= window.width / 4 * 3 && hero.y >= window.width - 150) {
+        hero.room = 6;
+        hero.y = 20;
+    }
     else if (hero.room == 1 && hero.x > 200 && hero.x + hero.width < 400 && hero.y < 200) {
         hero.room = 5;
-    }
+    } // stove
+    else if (hero.room == 1 && hero.x > 0 && hero.x + hero.width < 200 && hero.y < 200) {
+        hero.room = 11;
+    } // oven
+    else if (hero.room == 1 && hero.x > 400 && hero.x + hero.width < 600 && hero.y < 200) {
+        hero.room = 12;
+    } // fridge
     else if (hero.room == 2 && hero.y >= window.height / 3 && hero.y <= window.height / 2 && hero.x <= 0) {
         hero.room = 1;
         hero.x = window.width - 170;
@@ -454,6 +452,42 @@ void moveHero() {
     else if (hero.room == 4 && hero.y >= window.height / 3 && hero.y <= window.height / 2 && hero.x >= window.width - 150) {
         hero.room = 1;
         hero.x = 20;
+    }
+    else if (hero.room == 6 && hero.x >= window.width / 3 * 2 && hero.x <= window.width / 4 * 3 && hero.y <= 0) {
+        hero.room = 1;
+        hero.y = window.height - 170;
+    }
+    else if (hero.room == 6 && hero.y >= window.height / 3 && hero.y <= window.height / 2 && hero.x <= 0) {
+        hero.room = 9;
+        hero.x = window.width - 170;
+    }
+    else if (hero.room == 6 && hero.x >= window.width / 3 * 2 && hero.x <= window.width / 4 * 3 && hero.y >= window.width - 150) {
+        hero.room = 10;
+        hero.y = 20;
+    }
+    else if (hero.room == 6 && hero.x <= window.width / 3 && hero.x >= window.width / 4 && hero.y >= window.width - 150) {
+        hero.room = 7;
+        hero.y = 20;
+    }
+    else if (hero.room == 6 && hero.y >= window.height / 3 && hero.y <= window.height / 2 && hero.x >= window.width - 150) {
+        hero.room = 2;
+        hero.x = 20;
+    }
+    else if (hero.room == 7 && hero.x >= window.width / 3 && hero.x <= window.width / 4 && hero.y <= 0) {
+        hero.room = 6;
+        hero.y = window.height - 170;
+    }
+    else if (hero.room == 8 && hero.x >= window.width / 3 * 2 && hero.x <= window.width / 4 * 3 && hero.y <= 0) {
+        hero.room = 6;
+        hero.y = window.height - 170;
+    }
+    else if (hero.room == 9 && hero.y >= window.height / 3 && hero.y <= window.height / 2 && hero.x >= window.width - 150) {
+        hero.room = 6;
+        hero.x = 20;
+    }
+    else if (hero.room == 10 && hero.y >= window.height / 3 && hero.y <= window.height / 2 && hero.x <= 0) {
+        hero.room = 6;
+        hero.x = window.width - 170;
     }
 }
 
@@ -547,7 +581,9 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR  lpCm
     InitWindow();//здесь инициализируем все что нужно для рисования в окне
     InitGame();//здесь инициализируем переменные игры
 
-    ShowCursor(NULL);
+    if (hero.room != 5 && hero.room != 11 && hero.room != 12) {
+        ShowCursor(NULL);
+    }
     setText();
     int slot1 = 0;
     int slot2 = 0;
@@ -574,6 +610,34 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR  lpCm
         }
         case 5: {
             LocFive();
+            break;
+        }
+        case 6: {
+            LocSix();
+            break;
+        }
+        case 7: {
+            LocSeven();
+            break;
+        }
+        case 8: {
+            LocEight();
+            break;
+        }
+        case 9: {
+            LocNine();
+            break;
+        }
+        case 10: {
+            LocTen();
+            break;
+        }
+        case 11: {
+            LocEleven();
+            break;
+        }
+        case 12: {
+            LocTwelve();
             break;
         }
         }
