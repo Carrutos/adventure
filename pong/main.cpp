@@ -65,6 +65,8 @@ HBITMAP hStove;
 HBITMAP hCloset;
 HBITMAP hIceroom;
 HBITMAP hCloset1;
+HBITMAP hCoridor;
+HBITMAP hCoridor2;
 
 void setText() {
     SetTextColor(window.context, RGB(200, 200, 250));
@@ -287,6 +289,11 @@ void LocTwelve() {
     ShowBitmap(window.context, 0, 0, window.width, window.height, hBack);
 } // fridge
 
+void LocThirteen() {
+    ShowBitmap(window.context, 0, -1000, window.width * 2, window.height, hBack);
+    ShowBitmap(window.context, hero.x, hero.y, 2 * hero.rad, 2 * hero.rad, hero.hBitmap);
+} // coridor2
+
 void InitWindow()
 {
     SetProcessDPIAware();
@@ -487,6 +494,11 @@ void moveHero() {
         hero.room = 1;
         hero.y = 20;
     }
+    else if (hero.room == 3 && hero.x >= window.width / 3 * 2 && hero.x <= window.width / 4 * 3 && hero.y <= 0) {
+        hero.room = 13;
+        hero.y = window.height - 200;
+        hero.x = window.width - 170;
+    }
     else if (hero.room == 4 && hero.y >= window.height / 3 && hero.y <= window.height / 2 && hero.x >= window.width - 150) {
         hero.room = 1;
         hero.x = 20;
@@ -526,6 +538,25 @@ void moveHero() {
     else if (hero.room == 10 && hero.y >= window.height / 3 && hero.y <= window.height / 2 && hero.x <= 0) {
         hero.room = 6;
         hero.x = window.width - 170;
+    }
+}
+
+void move13() {
+    if (GetAsyncKeyState('D')) {
+        window.x -= hero.speed;
+    }
+    else if (GetAsyncKeyState('A')) {
+        window.x += hero.speed;
+    }
+    if (GetAsyncKeyState('W')) {
+        for (int i; i < 11; i++) {
+            hero.y = hero.y - hero.speed + 2 * i;
+        }
+    }
+    if (hero.x >= window.width) {
+        hero.room == 3;
+        hero.y = 20;
+        hero.x = window.width / 3 * 2;
     }
 }
 
@@ -711,9 +742,18 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR  lpCm
             LocTwelve();
             break;
         }
+        case 13: {
+            LocThirteen();
+            break;
+        }
         }
         initItems();
-        moveHero();
+        if (hero.room != 13) {
+            moveHero();
+        }
+        else {
+            move13();
+        }
         moveEnemy();
         if (GetAsyncKeyState('E')) {
             pickItem(slot1, slot2, slot3);
