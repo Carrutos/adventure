@@ -27,7 +27,7 @@ sprite man;
 sprite pool;
 sprite crane;
 sprite icestatue;
-sprite box;
+sprite box13;
 sprite aquaman;
 sprite skeleton;
 sprite box2;
@@ -58,6 +58,7 @@ struct {
     // x, y for third location;
     int x = 1200;
     int y = -1000;
+    int x2 = -1000;
 } window;
 
 HBITMAP hBack;// хэндл для фонового изображения
@@ -67,6 +68,7 @@ HBITMAP hIceroom;
 HBITMAP hCloset1;
 HBITMAP hCoridor;
 HBITMAP hCoridor2;
+int g = 0;
 
 void setText() {
     SetTextColor(window.context, RGB(200, 200, 250));
@@ -103,6 +105,7 @@ void InitGame()
     hBack = (HBITMAP)LoadImageA(NULL, "marblefloor.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     hIceroom = (HBITMAP)LoadImageA(NULL, "iceroom.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     hCloset1 = (HBITMAP)LoadImageA(NULL, "closet1.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    box13.hBitmap = (HBITMAP)LoadImageA(NULL, "oven.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 
     fridge.width = 200;
     fridge.height = 200;
@@ -145,7 +148,7 @@ void InitGame()
     hero.width = 150;
     hero.speed = 10;
     hero.rad = 75;
-    hero.room = 1;
+    hero.room = 13;
 
     enemy.x = window.width / 4 * 3 - 30;
     enemy.y = window.height - 200;
@@ -167,6 +170,11 @@ void InitGame()
     pool.y = 200;
     pool.width = window.width - 600;
     pool.height = window.height - 200;
+
+    box13.x = 100;
+    box13.y = window.height - 170;
+    box13.height = 150;
+    box13.width = 150;
 
     halva.room = 1;
     halva.x = 767;
@@ -290,8 +298,9 @@ void LocTwelve() {
 } // fridge
 
 void LocThirteen() {
-    ShowBitmap(window.context, 0, -1000, window.width * 2, window.height, hBack);
+    ShowBitmap(window.context, window.x2, 0, window.width * 2, window.height, hBack);
     ShowBitmap(window.context, hero.x, hero.y, 2 * hero.rad, 2 * hero.rad, hero.hBitmap);
+    ShowBitmap(window.context, box13.x, box13.y, box13.width, box13.height, box13.hBitmap);
 } // coridor2
 
 void InitWindow()
@@ -355,6 +364,9 @@ void collCase() {
     }
     else if (hero.room == 9) {
         coll(pool);
+    }
+    else if (hero.room == 13) {
+        coll(box13);
     }
     else {
 
@@ -542,16 +554,38 @@ void moveHero() {
 }
 
 void move13() {
+    bool jumping = false;
     if (GetAsyncKeyState('D')) {
-        window.x -= hero.speed;
+        window.x2 -= hero.speed;
+        box13.x -= hero.speed;
     }
     else if (GetAsyncKeyState('A')) {
-        window.x += hero.speed;
+        window.x2 += hero.speed;
+        box13.x += hero.speed;
     }
+    collCase();
+    if (hero.y >= window.height - 170) {
+        hero.y = window.height - 170;
+        g = 0;
+        jumping = false;
+    }
+    if (hero.x <= box13.x + box13.width && hero.x + hero.width >= box13.x && hero.y >= window.height - 320 && not(GetAsyncKeyState('W'))) {
+        hero.y = window.height - 320;
+        g = 0;
+        jumping = false;
+    }
+    
     if (GetAsyncKeyState('W')) {
-        for (int i; i < 11; i++) {
-            hero.y = hero.y - hero.speed + 2 * i;
-        }
+        hero.y = hero.y - hero.speed * 3 + g;
+        jumping = true;
+        
+        //if (hero.x + hero.width > box13.x && GetAsyncKeyState('A') && hero.x + hero.width < box13.x + 20 || hero.x < box13.x + box13.width && GetAsyncKeyState('D') && hero.x > box13.x + box13.width - 15) {
+            //g = hero.speed * 3;
+        //}
+    }
+    if (hero.y < window.height - 170 && jumping == true) {
+        
+        g += 2;
     }
     if (hero.x >= window.width) {
         hero.room == 3;
