@@ -554,14 +554,24 @@ void moveHero() {
 }
 
 void move13() {
-    bool jumping = false;
+    bool jumping;
     if (GetAsyncKeyState('D')) {
-        window.x2 -= hero.speed;
-        box13.x -= hero.speed;
+        if (window.x2 <= -1001) {
+            hero.x += hero.speed;
+        }
+        else {
+            window.x2 -= hero.speed;
+            box13.x -= hero.speed;
+        }
     }
     else if (GetAsyncKeyState('A')) {
-        window.x2 += hero.speed;
-        box13.x += hero.speed;
+        if (window.x2 >= 0) {
+            hero.x -= hero.speed;
+        }
+        else {
+            window.x2 += hero.speed;
+            box13.x += hero.speed;
+        }
     }
     collCase();
     if (hero.y >= window.height - 170) {
@@ -570,11 +580,10 @@ void move13() {
         jumping = false;
     }
     if (hero.x <= box13.x + box13.width && hero.x + hero.width >= box13.x && hero.y >= window.height - 320 && not(GetAsyncKeyState('W'))) {
-        hero.y = window.height - 320;
+        hero.y = window.height - 325;
         g = 0;
         jumping = false;
     }
-    
     if (GetAsyncKeyState('W')) {
         hero.y = hero.y - hero.speed * 3 + g;
         jumping = true;
@@ -583,9 +592,12 @@ void move13() {
             //g = hero.speed * 3;
         //}
     }
-    if (hero.y < window.height - 170 && jumping == true) {
-        
+    if (jumping == true) {
         g += 2;
+        hero.y = hero.y - hero.speed * 3 + g;
+    }
+    if (hero.x < 0) {
+        hero.x = 0;
     }
     if (hero.x >= window.width) {
         hero.room == 3;
