@@ -28,8 +28,8 @@ sprite pool;
 sprite crane;
 sprite icestatue;
 sprite box13;
-sprite aquaman;
-sprite skeleton;
+sprite aquaman; // enemy1
+sprite skeleton; // enemy2
 sprite box2;
 
 struct item {
@@ -72,6 +72,7 @@ HBITMAP hCoridor2;
 HBITMAP hOven;
 int g = 0;
 bool jumping = false;
+DWORD currentTime, lastTime;
 
 void setText() {
     SetTextColor(window.context, RGB(200, 200, 250));
@@ -103,6 +104,8 @@ void InitGame()
     halva.hBitmap = (HBITMAP)LoadImageA(NULL, "racket.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     key.hBitmap = (HBITMAP)LoadImageA(NULL, "ball.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     waffle.hBitmap = (HBITMAP)LoadImageA(NULL, "stove.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    aquaman.hBitmap = (HBITMAP)LoadImageA(NULL, "ball.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    skeleton.hBitmap = (HBITMAP)LoadImageA(NULL, "ball.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     hStove = (HBITMAP)LoadImageA(NULL, "locfive.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     hCloset = (HBITMAP)LoadImageA(NULL, "locfour.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     hBack = (HBITMAP)LoadImageA(NULL, "marblefloor.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
@@ -172,6 +175,8 @@ void InitGame()
     man.y = window.height / 2;
     man.width = 150;
     man.height = 200;
+    man.speed = 6;
+    man.hp = 20;
 
     pool.x = 200;
     pool.y = 200;
@@ -182,6 +187,20 @@ void InitGame()
     box13.y = window.height - 170;
     box13.height = 150;
     box13.width = 150;
+
+    aquaman.x = 100;
+    aquaman.y = 100;
+    aquaman.width = 150;
+    aquaman.height = 150;
+    aquaman.hp = 20;
+    aquaman.speed = 8;
+
+    skeleton.x = 100;
+    skeleton.y = 100;
+    skeleton.width = 150;
+    skeleton.height = 150;
+    skeleton.hp = 15;
+    skeleton.speed = 6;
 
     halva.room = 1;
     halva.x = 767;
@@ -207,7 +226,7 @@ POINT p;
 void mouseInput() {
     GetCursorPos(&p);
     ScreenToClient(window.hWnd, &p);
-    GetAsyncKeyState(VK_LBUTTON);
+    //GetAsyncKeyState(VK_LBUTTON);
     /*struct Mouse {
         Pos pos;
 
@@ -252,6 +271,18 @@ void ShowBitmap(HDC hDC, int x, int y, int x1, int y1, HBITMAP hBitmapBall, bool
     }
 
     DeleteDC(hMemDC); // Удаляем контекст памяти
+}
+
+void tutorial() {
+
+    if(currentTime - lastTime <= 3000) {
+        TextOutA(window.context, window.width / 2, 200, "feed a man", 10);
+        TextOutA(window.context, window.width / 2, 400, "e to eat", 8);
+        TextOutA(window.context, window.width / 2, 600, "t to take", 9);
+        TextOutA(window.context, window.width / 2, 800, "g to pick", 9);
+        TextOutA(window.context, window.width / 2, 1000, "u to use", 8);
+    }
+    
 }
 
 void LocOne()
@@ -302,6 +333,7 @@ void LocSix() {
 void LocSeven() {
     ShowBitmap(window.context, 0, 0, window.width, window.height, hCloset1);
     ShowBitmap(window.context, hero.x, hero.y, 2 * hero.rad, 2 * hero.rad, hero.hBitmap);
+    ShowBitmap(window.context, skeleton.x, skeleton.y, skeleton.width, skeleton.height, skeleton.hBitmap);
 } // closet1
 
 void LocEight() {
@@ -313,6 +345,7 @@ void LocNine() {
     ShowBitmap(window.context, 0, 0, window.width, window.height, hBack);
     ShowBitmap(window.context, hero.x, hero.y, 2 * hero.rad, 2 * hero.rad, hero.hBitmap);
     ShowBitmap(window.context, pool.x, pool.y, pool.width, pool.height, pool.hBitmap);
+    ShowBitmap(window.context, aquaman.x, aquaman.y, aquaman.width, aquaman.height, aquaman.hBitmap);
 } // pool
 
 void LocTen() {
@@ -357,10 +390,6 @@ void initItems() {
     if (hero.room == key.room && key.picked == 0 || key.picked == 1) {
         ShowBitmap(window.context, key.x, key.y, key.width, key.height, key.hBitmap);
     }
-    if (hero.room == 5) {
-        halva.x = 567;
-        halva.y = 678;
-    }
     if (hero.room == waffle.room && waffle.picked == 0 || waffle.picked == 1) {
         ShowBitmap(window.context, waffle.x, waffle.y, waffle.width, waffle.height, waffle.hBitmap);
     }
@@ -393,8 +422,11 @@ void collCase() {
         coll(table2);
         coll(man);
     }
+    else if (hero.room == 7) {
+        coll(skeleton);
+    }
     else if (hero.room == 9) {
-        coll(pool);
+        coll(pool); coll(aquaman);
     }
     else if (hero.room == 13) {
         coll(box13);
@@ -524,6 +556,12 @@ void moveHero() {
     else if (hero.room == 1 && hero.x > 400 && hero.x + hero.width < 600 && hero.y < 200) {
         hero.room = 12;
     } // fridge
+    if (hero.room == 5 || hero.room == 11 || hero.room == 12) {
+        if (p.y >= window.height - 20) {
+            hero.room = 1;
+            hero.y = 160;
+        }
+    }
     else if (hero.room == 2 && hero.y >= window.height / 3 && hero.y <= window.height / 2 && hero.x <= 0) {
         hero.room = 1;
         hero.x = window.width - 170;
@@ -637,33 +675,33 @@ void move13() {
     }
 }
 
-void moveEnemy() {
-    if (abs(enemy.x - hero.x) > 350 || abs(enemy.y - hero.y) > 350) {
-        if (enemy.x <= window.width / 4) {
-            enemy.y -= enemy.speed;
+void moveEnemy(sprite& enem) {
+    if (abs(enem.x - hero.x) > 350 || abs(enem.y - hero.y) > 350) {
+        if (enem.x <= window.width / 4) {
+            enem.y -= enem.speed;
         }
-        if (enemy.y <= 200) {
-            enemy.x += enemy.speed;
+        if (enem.y <= 200) {
+            enem.x += enem.speed;
         }
-        if (enemy.x >= window.width / 4 * 3) {
-            enemy.y += enemy.speed;
+        if (enem.x >= window.width / 4 * 3) {
+            enem.y += enem.speed;
         }
-        if (enemy.y >= window.height - 450) {
-            enemy.x -= enemy.speed;
+        if (enem.y >= window.height - 450) {
+            enem.x -= enem.speed;
         }
     }
     else {
-        if (enemy.x - hero.x > 180) {
-            enemy.x -= enemy.speed;
+        if (enem.x - hero.x > 180) {
+            enem.x -= enem.speed;
         }
-        else if (hero.x - enemy.x > 180) {
-            enemy.x += enemy.speed;
+        else if (hero.x - enem.x > 180) {
+            enem.x += enem.speed;
         }
-        else if (enemy.y - hero.y > 180) {
-            enemy.y -= enemy.speed;
+        else if (enem.y - hero.y > 180) {
+            enem.y -= enem.speed;
         }
-        else if (hero.y - enemy.y > 180) {
-            enemy.y += enemy.speed;
+        else if (hero.y - enem.y > 180) {
+            enem.y += enem.speed;
         }
     }
 }
@@ -684,7 +722,8 @@ int slot() {
 }
 
 int pickCase(item& ite, int slot) {
-    if (ite.x >= hero.x && ite.x + ite.width <= hero.x + hero.width && ite.y >= hero.y && ite.y + ite.height <= hero.y + hero.height) {
+    if (ite.x >= hero.x && ite.x + ite.width <= hero.x + hero.width && ite.y >= hero.y && ite.y + ite.height <= hero.y + hero.height || ite.x <= p.x && ite.x + ite.width >= p.x &&
+        ite.y <= p.y && ite.y + ite.height >= p.y) {
         if (slot == 1) {
             ite.x = window.width - 80;
             ite.y = window.height - 80;
@@ -710,25 +749,23 @@ int dropCase(item& ite) {
     if (hero.room != 3 && ite.picked == 1 && (GetAsyncKeyState('1') && ite.x == window.width - 80 && ite.y == window.height - 80 ||
         GetAsyncKeyState('2') && ite.x == window.width - 180 && ite.y == window.height - 80 || GetAsyncKeyState('3') &&
         ite.x == window.width - 280 && ite.y == window.height - 80)) {
-        if (ite.x == window.width - 80) {
+        if (hero.room == 5 || hero.room == 11 || hero.room == 12) {
+            ite.x = p.x;
+            ite.y = p.y;
+        }
+        else {
             ite.x = hero.x;
             ite.y = hero.y;
-            ite.picked = 0;
-            ite.room = hero.room;
+        }
+        ite.picked = 0;
+        ite.room = hero.room;
+        if (ite.x == window.width - 80) {
             return 1;
         }
         else if (ite.x == window.width - 180) {
-            ite.x = hero.x;
-            ite.y = hero.y;
-            ite.picked = 0;
-            ite.room = hero.room;
             return 2;
         }
         else if (ite.x == window.width - 280) {
-            ite.x = hero.x;
-            ite.y = hero.y;
-            ite.picked = 0;
-            ite.room = hero.room;
             return 3;
         }
     }
@@ -745,43 +782,63 @@ void pickItem(int& s1, int& s2, int& s3) {
     else if (s3 == 0) {
         slot0 = 3;
     }
-    if (pickCase(halva, slot0) == 1 || pickCase(key, slot0) == 1 || pickCase(waffle, slot0) == 1) {
-        s1 = 1;
-    }
-    else if (pickCase(halva, slot0) == 2 || pickCase(key, slot0) == 2 || pickCase(waffle, slot0) == 2) {
-        s2 = 1;
-    }
-    else if (pickCase(halva, slot0) == 3 || pickCase(key, slot0) == 3 || pickCase(waffle, slot0) == 3) {
-        s3 = 1;
+    int slot00 = slot();
+    if (pickCase(halva, slot0) == slot00 || pickCase(key, slot0) == slot00 || pickCase(waffle, slot0) == slot00) {
+        if (slot00 == 1) {
+            s1 = 1;
+        }
+        else if (slot00 == 2) {
+            s2 = 1;
+        }
+        else if (slot00 == 3) {
+            s3 = 1;
+        }
     }
 }
 
 int dropItem(int& s1, int& s2, int& s3) {
     while (not(GetAsyncKeyState('1')) && not(GetAsyncKeyState('2')) && not(GetAsyncKeyState('3'))) {
-        if (dropCase(halva) == 1 || dropCase(key) == 1 || dropCase(waffle) == 1) {
-            s1 = 0;
-        }
-        else if (dropCase(halva) == 2 || dropCase(key) == 2 || dropCase(waffle) == 2) {
+        int slot0 = slot();
+        if (dropCase(halva) == slot0 || dropCase(key) == slot0 || dropCase(waffle) == slot0) {
+            if (slot0 == 1) {
+                s1 = 0;
+            }
+        else if (slot0 == 2) {
             s2 = 0;
         }
-        else if (dropCase(halva) == 3 || dropCase(key) == 3 || dropCase(waffle) == 3) {
+        else if (slot0 == 3) {
             s3 = 0;
         }
+    }
     }
     return s1, s2, s3;
 }
 
+void eatCase(item& i) {
+    if (i.x == hero.x && i.y == hero.y) {
+        i.x = -100;
+        i.y = -100;
+        i.picked = 0;
+        hero.hp += 2;
+    }
+}
+
 void eatItem(int& s1, int& s2, int& s3) {
     while (not(GetAsyncKeyState('1')) && not(GetAsyncKeyState('2')) && not(GetAsyncKeyState('3'))) {
-
+        dropItem(s1, s2, s3);
+        eatCase(halva); eatCase(waffle);
     }
 }
 
 void useItem(int& s1, int& s2, int& s3) {
     while (not(GetAsyncKeyState('1')) && not(GetAsyncKeyState('2')) && not(GetAsyncKeyState('3'))) {
-
+        dropItem(s1, s2, s3);
     }
 }
+
+
+
+int alpha = 0;
 
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR  lpCmdLine, int  nCmdShow)
 {
@@ -794,6 +851,8 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR  lpCm
     int slot2 = 0;
     int slot3 = 0;
 
+    currentTime = timeGetTime();
+    lastTime = currentTime;
     while (!GetAsyncKeyState(VK_ESCAPE))
     {
         switch (hero.room) {
@@ -850,6 +909,11 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR  lpCm
             break;
         }
         }
+        currentTime = timeGetTime();
+        tutorial();
+        std::string A = "health: " + std::to_string((int)hero.hp);
+        TextOutA(window.context, 100 , 20, A.c_str(), 11);
+        
         if (hero.room != 5 && hero.room != 11 && hero.room != 12) {
             //ShowCursor(NULL);
         }
@@ -863,7 +927,18 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR  lpCm
         else {
             move13();
         }
-        moveEnemy();
+        if (hero.room == 1) {
+            moveEnemy(enemy);
+        }
+        else if (hero.room == 2) {
+            moveEnemy(man);
+        }
+        else if (hero.room == 7) {
+            moveEnemy(skeleton);
+        }
+        else if (hero.room == 9) {
+            moveEnemy(aquaman);
+        }
         if (GetAsyncKeyState('G')) {
             pickItem(slot1, slot2, slot3);
         }
@@ -873,7 +948,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR  lpCm
         if (GetAsyncKeyState('E')) {
             eatItem(slot1, slot2, slot3);
         }
-        if (GetAsyncKeyState('U')) {
+        if (GetAsyncKeyState('U') && (hero.room == 12 || hero.room == 10)) {
             useItem(slot1, slot2, slot3);
         }
         BitBlt(window.device_context, 0, 0, window.width, window.height, window.context, 0, 0, SRCCOPY);//копируем буфер в окно
