@@ -9,7 +9,7 @@
 // секция данных игры  
 typedef struct {
     float x, y, width, height, rad, dx, dy, speed;
-    int room;
+    int room, hp;
     HBITMAP hBitmap;//хэндл к спрайту
 } sprite;
 
@@ -155,6 +155,7 @@ void InitGame()
     hero.speed = 10;
     hero.rad = 75;
     hero.room = 1;
+    hero.hp = 51;
 
     enemy.x = window.width / 4 * 3 - 30;
     enemy.y = window.height - 200;
@@ -202,7 +203,7 @@ struct Pos {
     int y;
 };
 
-    POINT p;
+POINT p;
 void mouseInput() {
     GetCursorPos(&p);
     ScreenToClient(window.hWnd, &p);
@@ -583,7 +584,7 @@ void moveHero() {
 }
 
 void move13() {
-    
+
     if (GetAsyncKeyState('D')) {
         if (window.x2 <= -1001) {
             hero.x += hero.speed;
@@ -602,7 +603,7 @@ void move13() {
             box13.x += hero.speed;
         }
     }
-    
+
     if (hero.y >= window.height - 170) {
         hero.y = window.height - 170;
         g = 0;
@@ -667,7 +668,22 @@ void moveEnemy() {
     }
 }
 
-int pickCase(item &ite, int slot) {
+int slot() {
+    if (GetAsyncKeyState('1')) {
+        return 1;
+    }
+    else if (GetAsyncKeyState('2')) {
+        return 2;
+    }
+    else if (GetAsyncKeyState('3')) {
+        return 3;
+    }
+    else {
+        return 4;
+    }
+}
+
+int pickCase(item& ite, int slot) {
     if (ite.x >= hero.x && ite.x + ite.width <= hero.x + hero.width && ite.y >= hero.y && ite.y + ite.height <= hero.y + hero.height) {
         if (slot == 1) {
             ite.x = window.width - 80;
@@ -690,7 +706,7 @@ int pickCase(item &ite, int slot) {
     }
 }
 
-int dropCase(item &ite) {
+int dropCase(item& ite) {
     if (hero.room != 3 && ite.picked == 1 && (GetAsyncKeyState('1') && ite.x == window.width - 80 && ite.y == window.height - 80 ||
         GetAsyncKeyState('2') && ite.x == window.width - 180 && ite.y == window.height - 80 || GetAsyncKeyState('3') &&
         ite.x == window.width - 280 && ite.y == window.height - 80)) {
@@ -718,7 +734,7 @@ int dropCase(item &ite) {
     }
 }
 
-void pickItem(int &s1, int &s2, int &s3) {
+void pickItem(int& s1, int& s2, int& s3) {
     int slot0 = 0;
     if (s1 == 0) {
         slot0 = 1;
@@ -740,25 +756,31 @@ void pickItem(int &s1, int &s2, int &s3) {
     }
 }
 
-int dropItem(int &s1, int &s2, int &s3) {
-    if (dropCase(halva) == 1 || dropCase(key) == 1 || dropCase(waffle) == 1) {
-        s1 = 0;
-    }
-    else if (dropCase(halva) == 2 || dropCase(key) == 2 || dropCase(waffle) == 2) {
-        s2 = 0;
-    }
-    else if (dropCase(halva) == 3 || dropCase(key) == 3 || dropCase(waffle) == 3) {
-        s3 = 0;
+int dropItem(int& s1, int& s2, int& s3) {
+    while (not(GetAsyncKeyState('1')) && not(GetAsyncKeyState('2')) && not(GetAsyncKeyState('3'))) {
+        if (dropCase(halva) == 1 || dropCase(key) == 1 || dropCase(waffle) == 1) {
+            s1 = 0;
+        }
+        else if (dropCase(halva) == 2 || dropCase(key) == 2 || dropCase(waffle) == 2) {
+            s2 = 0;
+        }
+        else if (dropCase(halva) == 3 || dropCase(key) == 3 || dropCase(waffle) == 3) {
+            s3 = 0;
+        }
     }
     return s1, s2, s3;
 }
 
 void eatItem(int& s1, int& s2, int& s3) {
+    while (not(GetAsyncKeyState('1')) && not(GetAsyncKeyState('2')) && not(GetAsyncKeyState('3'))) {
 
+    }
 }
 
 void useItem(int& s1, int& s2, int& s3) {
+    while (not(GetAsyncKeyState('1')) && not(GetAsyncKeyState('2')) && not(GetAsyncKeyState('3'))) {
 
+    }
 }
 
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR  lpCmdLine, int  nCmdShow)
@@ -842,10 +864,10 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR  lpCm
             move13();
         }
         moveEnemy();
-        if (GetAsyncKeyState('T')) {
+        if (GetAsyncKeyState('G')) {
             pickItem(slot1, slot2, slot3);
         }
-        if (GetAsyncKeyState('1') || GetAsyncKeyState('2') || GetAsyncKeyState('3')) {
+        if (GetAsyncKeyState('T')) {
             dropItem(slot1, slot2, slot3);
         }
         if (GetAsyncKeyState('E')) {
