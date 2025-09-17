@@ -6,6 +6,8 @@
 #include "cmath"
 #include <string>
 
+#include "showloc.h"
+
 // секция данных игры  
 typedef struct {
     float x, y, width, height, rad, dx, dy, speed;
@@ -61,15 +63,7 @@ struct {
     int x2 = -1000;
 } window;
 
-HBITMAP hBack;// хэндл для фонового изображения
-HBITMAP hStove;
-HBITMAP hCloset;
-HBITMAP hIceroom;
-HBITMAP hCloset1;
-HBITMAP hCloset2;
-HBITMAP hCoridor;
-HBITMAP hCoridor2;
-HBITMAP hOven;
+
 int g = 0;
 bool jumping = false;
 DWORD currentTime, lastTime;
@@ -105,7 +99,7 @@ void InitGame()
     waffle.hBitmap = (HBITMAP)LoadImageA(NULL, "stove.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     aquaman.hBitmap = (HBITMAP)LoadImageA(NULL, "ball.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     skeleton.hBitmap = (HBITMAP)LoadImageA(NULL, "ball.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-    water.hBitmap = (HBITMAP)LoadImageA(NULL, "ice.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    water.hBitmap = (HBITMAP)LoadImageA(NULL, "iceroom1.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     hStove = (HBITMAP)LoadImageA(NULL, "locfive.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     hCloset = (HBITMAP)LoadImageA(NULL, "locfour.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     hBack = (HBITMAP)LoadImageA(NULL, "marblefloor.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
@@ -213,7 +207,7 @@ void InitGame()
     waffle.y = 111;
 
     water.room = 9;
-    water.x = 800;
+    water.x = window.width - 350;
     water.y = window.height / 2;
 
     game.score = 0;
@@ -223,6 +217,9 @@ struct Pos {
     int x;
     int y;
 };
+int slot1 = 0;
+int slot2 = 0;
+int slot3 = 0;
 
 POINT p;
 void mouseInput() {
@@ -278,11 +275,11 @@ void ShowBitmap(HDC hDC, int x, int y, int x1, int y1, HBITMAP hBitmapBall, bool
 void tutorial() {
 
     if (currentTime - lastTime <= 3000) {
-        TextOutA(window.context, window.width / 2, 200, "feed a man", 10);
-        TextOutA(window.context, window.width / 2, 400, "e to eat", 8);
-        TextOutA(window.context, window.width / 2, 600, "t to take", 9);
-        TextOutA(window.context, window.width / 2, 800, "g to pick", 9);
-        TextOutA(window.context, window.width / 2, 1000, "u to use", 8);
+        TextOutA(window.context, window.width / 2, 100, "feed a man", 10);
+        TextOutA(window.context, window.width / 2, 200, "e to eat", 8);
+        TextOutA(window.context, window.width / 2, 300, "t to take", 9);
+        TextOutA(window.context, window.width / 2, 400, "g to pick", 9);
+        TextOutA(window.context, window.width / 2, 500, "u to use", 8);
     }
 
 }
@@ -328,7 +325,11 @@ void LocFive() {
 void LocSix() {
     ShowBitmap(window.context, 0, 0, window.width, window.height, hBack);
     ShowBitmap(window.context, hero.x, hero.y, 2 * hero.rad, 2 * hero.rad, hero.hBitmap);
-    TextOutA(window.context, window.width / 4 * 3, 100, "kitchen", 7);
+    TextOutA(window.context, window.width / 4 * 3, 20, "kitchen", 7);
+    TextOutA(window.context, 20, window.height / 3, "pool", 4);
+    TextOutA(window.context, window.width - 240, window.height / 3, "ice room", 8);
+    TextOutA(window.context, window.width / 4 * 3, window.height - 100, "closet2", 7);
+    TextOutA(window.context, window.width / 4, window.height - 100, "closet1", 7);
 } // utility room
 
 void LocSeven() {
@@ -399,8 +400,23 @@ void initItems() {
     if (hero.room == waffle.room && waffle.picked == 0 || waffle.picked == 1) {
         ShowBitmap(window.context, waffle.x, waffle.y, waffle.width, waffle.height, waffle.hBitmap);
     }
-    if (hero.room == water.room && water.picked == 0 || water.picked == 1) {
+    if (hero.room == water.room && water.picked == 0) {
         ShowBitmap(window.context, water.x, water.y, water.width, water.height, water.hBitmap);
+    }
+    if (hero.room == 9) {
+        ShowBitmap(window.context, window.width - 350, window.height / 2, water.width, water.height, water.hBitmap);
+    }
+        if (water.picked == 1) {
+            if (slot1 == 1) {
+                ShowBitmap(window.context, window.width - 80, window.height - 80, 70, 70, water.hBitmap);
+            }
+            else if (slot2 == 1) {
+                ShowBitmap(window.context, window.width - 180, window.height - 80, 70, 70, water.hBitmap);
+            }
+            else if (slot3 == 1) {
+                ShowBitmap(window.context, window.width - 280, window.height - 80, 70, 70, water.hBitmap);
+            }
+            water.picked = 0;
     }
 }
 
@@ -493,7 +509,7 @@ void moveHero() {
     else if (GetAsyncKeyState('W')) {
         if (hero.room == 3 && window.y <= 0) {
             window.y += hero.speed;
-            //key.y += hero.speed;
+            key.y += hero.speed;
         }
         else {
             hero.y -= hero.speed;
@@ -502,7 +518,7 @@ void moveHero() {
     else if (GetAsyncKeyState('S')) {
         if (hero.room == 3 && window.y >= -4000 + window.height) {
             window.y -= hero.speed;
-            //key.y -= hero.speed;
+            key.y -= hero.speed;
         }
         else {
             hero.y += hero.speed;
@@ -712,7 +728,10 @@ void moveEnemy(sprite& enem) {
             enem.y += enem.speed;
         }
     }
-    if (enem.y <= hero.y + hero.height || enem.y + enem.height >= hero.y || enem.x <= hero.x + hero.width || enem.x + enem.width >= hero.x) {
+    if (hero.x + hero.width >= enem.x && hero.y < enem.y + enem.height && hero.y + hero.height > enem.y && hero.x + hero.width <= enem.x + hero.speed ||
+        hero.x <= enem.x + enem.width && hero.y < enem.y + enem.height && hero.y + hero.height > enem.y && hero.x >= enem.x + enem.width - hero.speed ||
+        hero.y <= enem.y + enem.height && hero.x < enem.x + enem.width && hero.x + hero.width > enem.x && hero.y >= enem.y + enem.height - hero.speed ||
+        hero.y + hero.height >= enem.y && hero.x < enem.x + enem.width && hero.x + hero.width > enem.x && hero.y + hero.height <= enem.y + hero.speed) {
         hero.hp -= enem.dmg;
         if (GetAsyncKeyState('W') || GetAsyncKeyState('A') || GetAsyncKeyState('S') || GetAsyncKeyState('D')) {
             enem.hp -= hero.dmg;
@@ -785,48 +804,54 @@ int dropCase(item& ite) {
     }
 }
 
-void pickItem(int& s1, int& s2, int& s3) {
+void pickItem() {
     int slot0 = 0;
-    if (s1 == 0) {
+    if (slot1 == 0) {
         slot0 = 1;
     }
-    else if (s2 == 0) {
+    else if (slot2 == 0) {
         slot0 = 2;
     }
-    else if (s3 == 0) {
+    else if (slot3 == 0) {
         slot0 = 3;
     }
     int slot00 = slot();
     if (pickCase(halva, slot0) == slot00 || pickCase(key, slot0) == slot00 || pickCase(waffle, slot0) == slot00 || pickCase(water, slot0) 
         == slot00) {
         if (slot00 == 1) {
-            s1 = 1;
+            slot1 = 1;
         }
         else if (slot00 == 2) {
-            s2 = 1;
+            slot2 = 1;
         }
         else if (slot00 == 3) {
-            s3 = 1;
+            slot3 = 1;
+        }
+        if (pickCase(water, slot0) == slot00) {
+            water.x = window.width - 350;
+            water.y = window.height / 2;
         }
     }
 }
 
-int dropItem(int& s1, int& s2, int& s3) {
+void dropItem() {
     while (not(GetAsyncKeyState('1')) && not(GetAsyncKeyState('2')) && not(GetAsyncKeyState('3'))) {
         int slot0 = slot();
-        if (dropCase(halva) == slot0 || dropCase(key) == slot0 || dropCase(waffle) == slot0 || dropCase(water) == slot0) {
+        if (dropCase(halva) == slot0 || dropCase(key) == slot0 || dropCase(waffle) == slot0) {
             if (slot0 == 1) {
-                s1 = 0;
+                slot1 = 0;
             }
             else if (slot0 == 2) {
-                s2 = 0;
+                slot2 = 0;
             }
             else if (slot0 == 3) {
-                s3 = 0;
+                slot3 = 0;
             }
         }
+        else if (slot0 == 1) {
+
+        }
     }
-    return s1, s2, s3;
 }
 
 void eatCase(item& i) {
@@ -838,20 +863,18 @@ void eatCase(item& i) {
     }
 }
 
-void eatItem(int& s1, int& s2, int& s3) {
+void eatItem() {
     while (not(GetAsyncKeyState('1')) && not(GetAsyncKeyState('2')) && not(GetAsyncKeyState('3'))) {
-        dropItem(s1, s2, s3);
+        dropItem();
         eatCase(halva); eatCase(waffle); eatCase(water);
     }
 }
 
-void useItem(int& s1, int& s2, int& s3) {
+void useItem() {
     while (not(GetAsyncKeyState('1')) && not(GetAsyncKeyState('2')) && not(GetAsyncKeyState('3'))) {
-        dropItem(s1, s2, s3);
+        dropItem();
     }
 }
-
-
 
 int alpha = 0;
 
@@ -862,9 +885,6 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR  lpCm
     InitGame();//здесь инициализируем переменные игры
 
     setText();
-    int slot1 = 0;
-    int slot2 = 0;
-    int slot3 = 0;
 
     currentTime = timeGetTime();
     lastTime = currentTime;
@@ -954,22 +974,37 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR  lpCm
             moveEnemy(aquaman);
         }
         if (GetAsyncKeyState('G')) {
-            pickItem(slot1, slot2, slot3);
+            pickItem();
         }
         if (GetAsyncKeyState('T')) {
-            dropItem(slot1, slot2, slot3);
+            dropItem();
         }
         if (GetAsyncKeyState('E')) {
-            eatItem(slot1, slot2, slot3);
+            eatItem();
         }
         if (GetAsyncKeyState('U') && (hero.room == 12 || hero.room == 10)) {
-            useItem(slot1, slot2, slot3);
+            useItem();
         }
-        if (hero.hp <= 0 || man.hp <= 0) {
+        if (hero.hp <= 0 || man.hp <= 0 || hero.room == 13 && key.picked == 1 && hero.x == 0) {
             break;
         }
         BitBlt(window.device_context, 0, 0, window.width, window.height, window.context, 0, 0, SRCCOPY);//копируем буфер в окно
         Sleep(16);//ждем 16 милисекунд (1/количество кадров в секунду)
     }
-
+    if (hero.hp <= 0) {
+        lastTime = timeGetTime();
+        currentTime = lastTime;
+        if (currentTime - lastTime <= 3000) {
+            TextOutA(window.context, window.width / 2, 100, "you died", 8);
+            currentTime = timeGetTime();
+        }
+    }
+    else if (man.hp == 0) {
+        lastTime = timeGetTime();
+        currentTime = lastTime;
+        if (currentTime - lastTime <= 3000) {
+            TextOutA(window.context, window.width / 2, 100, "no need to serve him anymore", 27);
+            currentTime = timeGetTime();
+        }
+    }
 }
