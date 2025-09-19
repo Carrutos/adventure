@@ -40,6 +40,7 @@ struct item {
     float width = 70;
     float height = 70;
     int picked = 0;
+    int like;
     HBITMAP hBitmap;//хэндл к спрайту
 };
 
@@ -197,18 +198,22 @@ void InitGame()
     halva.room = 1;
     halva.x = 767;
     halva.y = 456;
+    halva.like = 3;
 
     key.room = 3;
     key.x = 1500;
     key.y = 200;
+    key.like = 1;
 
     waffle.room = 7;
     waffle.x = 111;
     waffle.y = 111;
+    waffle.like = 3;
 
     water.room = 9;
     water.x = window.width - 350;
     water.y = window.height / 2;
+    water.like = 2;
 
     game.score = 0;
 }
@@ -406,17 +411,17 @@ void initItems() {
     if (hero.room == 9) {
         ShowBitmap(window.context, window.width - 350, window.height / 2, water.width, water.height, water.hBitmap);
     }
-        if (water.picked == 1) {
-            if (slot1 == 1) {
-                ShowBitmap(window.context, window.width - 80, window.height - 80, 70, 70, water.hBitmap);
-            }
-            else if (slot2 == 1) {
-                ShowBitmap(window.context, window.width - 180, window.height - 80, 70, 70, water.hBitmap);
-            }
-            else if (slot3 == 1) {
-                ShowBitmap(window.context, window.width - 280, window.height - 80, 70, 70, water.hBitmap);
-            }
-            water.picked = 0;
+    if (water.picked == 1) {
+        if (slot1 == 1) {
+            ShowBitmap(window.context, window.width - 80, window.height - 80, 70, 70, water.hBitmap);
+        }
+        else if (slot2 == 1) {
+            ShowBitmap(window.context, window.width - 180, window.height - 80, 70, 70, water.hBitmap);
+        }
+        else if (slot3 == 1) {
+            ShowBitmap(window.context, window.width - 280, window.height - 80, 70, 70, water.hBitmap);
+        }
+        water.picked = 0;
     }
 }
 
@@ -728,14 +733,61 @@ void moveEnemy(sprite& enem) {
             enem.y += enem.speed;
         }
     }
-    if (hero.x + hero.width >= enem.x && hero.y < enem.y + enem.height && hero.y + hero.height > enem.y && hero.x + hero.width <= enem.x + hero.speed ||
-        hero.x <= enem.x + enem.width && hero.y < enem.y + enem.height && hero.y + hero.height > enem.y && hero.x >= enem.x + enem.width - hero.speed ||
-        hero.y <= enem.y + enem.height && hero.x < enem.x + enem.width && hero.x + hero.width > enem.x && hero.y >= enem.y + enem.height - hero.speed ||
-        hero.y + hero.height >= enem.y && hero.x < enem.x + enem.width && hero.x + hero.width > enem.x && hero.y + hero.height <= enem.y + hero.speed) {
+    if (hero.x + hero.width >= enem.x && hero.y < enem.y + enem.height && hero.y + hero.height > enem.y && hero.x + hero.width <= enem.x + hero.speed) {
+        hero.x -= 50;
         hero.hp -= enem.dmg;
         if (GetAsyncKeyState('W') || GetAsyncKeyState('A') || GetAsyncKeyState('S') || GetAsyncKeyState('D')) {
             enem.hp -= hero.dmg;
+            enem.x += 50;
         }
+    }
+    if (hero.x <= enem.x + enem.width && hero.y < enem.y + enem.height && hero.y + hero.height > enem.y && hero.x >= enem.x + enem.width - hero.speed) {
+        hero.x += 50;
+        hero.hp -= enem.dmg;
+        if (GetAsyncKeyState('W') || GetAsyncKeyState('A') || GetAsyncKeyState('S') || GetAsyncKeyState('D')) {
+            enem.hp -= hero.dmg;
+            enem.x -= 50;
+        }
+    }
+    if (hero.y <= enem.y + enem.height && hero.x < enem.x + enem.width && hero.x + hero.width > enem.x && hero.y >= enem.y + enem.height - hero.speed) {
+        hero.y += 50;
+        hero.hp -= enem.dmg;
+        if (GetAsyncKeyState('W') || GetAsyncKeyState('A') || GetAsyncKeyState('S') || GetAsyncKeyState('D')) {
+            enem.hp -= hero.dmg;
+            enem.y -= 50;
+        }
+    }
+    if (hero.y + hero.height >= enem.y && hero.x < enem.x + enem.width && hero.x + hero.width > enem.x && hero.y + hero.height <= enem.y + hero.speed) {
+        hero.y -= 50;
+        hero.hp -= enem.dmg;
+        if (GetAsyncKeyState('W') || GetAsyncKeyState('A') || GetAsyncKeyState('S') || GetAsyncKeyState('D')) {
+            enem.hp -= hero.dmg;
+            enem.y += 50;
+        }
+    }
+}
+
+int NameCase(item ite) {
+    if (0 <= hero.x - ite.x <= 170 || 0 <= ite.x - hero.x <= 250 || 0 <= hero.y - ite.y <= 170 || 0 <= ite.y - hero.y <= 250) {
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}
+
+void itemName() {
+    if (NameCase(halva) == 1) {
+        TextOutA(window.context, window.width - 200, window.height - 100, "halva", 5);
+    }
+    else if (NameCase(key) == 1) {
+        TextOutA(window.context, window.width - 200, window.height - 100, "key", 3);
+    }
+    else if (NameCase(waffle) == 1) {
+        TextOutA(window.context, window.width - 200, window.height - 100, "waffle", 6);
+    }
+    else if (NameCase(water) == 1) {
+        TextOutA(window.context, window.width - 200, window.height - 100, "water", 1);
     }
 }
 
@@ -816,7 +868,7 @@ void pickItem() {
         slot0 = 3;
     }
     int slot00 = slot();
-    if (pickCase(halva, slot0) == slot00 || pickCase(key, slot0) == slot00 || pickCase(waffle, slot0) == slot00 || pickCase(water, slot0) 
+    if (pickCase(halva, slot0) == slot00 || pickCase(key, slot0) == slot00 || pickCase(waffle, slot0) == slot00 || pickCase(water, slot0)
         == slot00) {
         if (slot00 == 1) {
             slot1 = 1;
@@ -958,6 +1010,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR  lpCm
             mouseInput();
         }
         initItems();
+        itemName();
         if (hero.room != 13) {
             moveHero();
         }
@@ -991,19 +1044,70 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR  lpCm
         BitBlt(window.device_context, 0, 0, window.width, window.height, window.context, 0, 0, SRCCOPY);//копируем буфер в окно
         Sleep(16);//ждем 16 милисекунд (1/количество кадров в секунду)
     }
-    if (hero.hp <= 0) {
-        lastTime = timeGetTime();
-        currentTime = lastTime;
-        if (currentTime - lastTime <= 3000) {
-            TextOutA(window.context, window.width / 2, 100, "you died", 8);
-            currentTime = timeGetTime();
+    if (hero.hp <= 0 || man.hp <= 0) {
+        switch (hero.room) {
+        case 1: {
+            LocOne();
+            break;
         }
-    }
-    else if (man.hp == 0) {
+        case 2: {
+            LocTwo();
+            break;
+        }
+        case 3: {
+            LocThree();
+            break;
+        }
+        case 4: {
+            LocFour();
+            break;
+        }
+        case 5: {
+            LocFive();
+            break;
+        }
+        case 6: {
+            LocSix();
+            break;
+        }
+        case 7: {
+            LocSeven();
+            break;
+        }
+        case 8: {
+            LocEight();
+            break;
+        }
+        case 9: {
+            LocNine();
+            break;
+        }
+        case 10: {
+            LocTen();
+            break;
+        }
+        case 11: {
+            LocEleven();
+            break;
+        }
+        case 12: {
+            LocTwelve();
+            break;
+        }
+        case 13: {
+            LocThirteen();
+            break;
+        }
+        }
         lastTime = timeGetTime();
         currentTime = lastTime;
         if (currentTime - lastTime <= 3000) {
-            TextOutA(window.context, window.width / 2, 100, "no need to serve him anymore", 27);
+            if (hero.hp <= 0) {
+                TextOutA(window.context, window.width / 2, 100, "you died", 8);
+            }
+            else if (man.hp <= 0) {
+                TextOutA(window.context, window.width / 2, 100, "no need to serve him anymore", 27);
+            }
             currentTime = timeGetTime();
         }
     }
