@@ -48,6 +48,7 @@ item halva;
 item key;
 item waffle;
 item water;
+std::vector<int> waterlocs;
 
 struct {
     int score, balls;//количество набранных очков и оставшихся "жизней"
@@ -421,7 +422,7 @@ void initItems() {
         else if (slot3 == 1) {
             ShowBitmap(window.context, window.width - 280, window.height - 80, 70, 70, water.hBitmap);
         }
-        water.picked = 0;
+        //water.picked = 0;
     }
 }
 
@@ -809,22 +810,18 @@ int slot() {
 int pickCase(item& ite, int slot) {
     if (ite.x >= hero.x && ite.x + ite.width <= hero.x + hero.width && ite.y >= hero.y && ite.y + ite.height <= hero.y + hero.height || ite.x <= p.x && ite.x + ite.width >= p.x &&
         ite.y <= p.y && ite.y + ite.height >= p.y) {
+        ite.y = window.height - 80;
+        ite.picked = 1;
         if (slot == 1) {
             ite.x = window.width - 80;
-            ite.y = window.height - 80;
-            ite.picked = 1;
             return 1;
         }
         else if (slot == 2) {
             ite.x = window.width - 180;
-            ite.y = window.height - 80;
-            ite.picked = 1;
             return 2;
         }
         else if (slot == 3) {
             ite.x = window.width - 280;
-            ite.y = window.height - 80;
-            ite.picked = 1;
             return 3;
         }
     }
@@ -884,6 +881,25 @@ void pickItem() {
             water.y = window.height / 2;
         }
     }
+    for (int i = 0; i < waterlocs.size(); i + 3) {
+        if (waterlocs[i] >= hero.x && waterlocs[i] + 70 <= hero.x + hero.width && waterlocs[i + 1] >= hero.y && waterlocs[i + 1] + 70 <= hero.y + hero.height ||
+            waterlocs[i] <= p.x && waterlocs[i] + 70 >= p.x && waterlocs[i + 1] <= p.y && waterlocs[i + 1] + 70 >= p.y) {
+            waterlocs[i+1] = 80;
+            waterlocs[i+2] = hero.room;
+            if (slot00 == 1) {
+                waterlocs[i] = 80;
+                slot1 = 1;
+            }
+            else if (slot00 == 2) {
+                waterlocs[i] = 180;
+                slot2 = 1;
+            }
+            else if (slot00 == 3) {
+                waterlocs[i] = 280;
+                slot3 = 1;
+            }
+        }
+    }
 }
 
 void dropItem() {
@@ -900,8 +916,10 @@ void dropItem() {
                 slot3 = 0;
             }
         }
-        else if (slot0 == 1) {
+        for (int i = 0; i < waterlocs.size(); i + 3) {
+            if (waterlocs[i + 1] == 80 && (waterlocs[i] == 80 || waterlocs[i] == 180 || waterlocs[i] == 280)) {
 
+            }
         }
     }
 }
