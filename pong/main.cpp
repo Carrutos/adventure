@@ -5,6 +5,7 @@
 #include "windows.h"
 #include "cmath"
 #include <string>
+#include <vector>
 
 #include "showloc.h"
 
@@ -48,6 +49,13 @@ item halva;
 item key;
 item waffle;
 item water;
+item frozenHalva;
+item cream;
+item frozenKey;
+item copper;
+item frozenWaffle;
+item cracker;
+item ice;
 std::vector<int> waterlocs;
 
 struct {
@@ -216,6 +224,14 @@ void InitGame()
     water.y = window.height / 2;
     water.like = 2;
 
+    frozenHalva.like = 2;
+    cream.like = 3;
+    frozenKey.like = 1;
+    copper.like = 1;
+    frozenWaffle.like = 2;
+    cracker.like = 3;
+    ice.like = 1;
+
     game.score = 0;
 }
 
@@ -226,6 +242,7 @@ struct Pos {
 int slot1 = 0;
 int slot2 = 0;
 int slot3 = 0;
+int rage = 0;
 
 POINT p;
 void mouseInput() {
@@ -409,20 +426,31 @@ void initItems() {
     if (hero.room == water.room && water.picked == 0) {
         ShowBitmap(window.context, water.x, water.y, water.width, water.height, water.hBitmap);
     }
-    if (hero.room == 9) {
-        ShowBitmap(window.context, window.width - 350, window.height / 2, water.width, water.height, water.hBitmap);
+    if (hero.room == frozenHalva.room && frozenHalva.picked == 0) {
+        ShowBitmap(window.context, frozenHalva.x, frozenHalva.y, frozenHalva.width, frozenHalva.height, halva.hBitmap);
     }
-    if (water.picked == 1) {
-        if (slot1 == 1) {
-            ShowBitmap(window.context, window.width - 80, window.height - 80, 70, 70, water.hBitmap);
+    if (hero.room == cream.room && cream.picked == 0) {
+        ShowBitmap(window.context, cream.x, cream.y, cream.width, cream.height, halva.hBitmap);
+    }
+    if (hero.room == frozenKey.room && frozenKey.picked == 0) {
+        ShowBitmap(window.context, frozenKey.x, frozenKey.y, frozenKey.width, frozenKey.height, key.hBitmap);
+    }
+    if (hero.room == copper.room && copper.picked == 0) {
+        ShowBitmap(window.context, copper.x, copper.y, copper.width, copper.height, key.hBitmap);
+    }
+    if (hero.room == frozenWaffle.room && frozenWaffle.picked == 0) {
+        ShowBitmap(window.context, frozenWaffle.x, frozenWaffle.y, frozenWaffle.width, frozenWaffle.height, waffle.hBitmap);
+    }
+    if (hero.room == cracker.room && cracker.picked == 0) {
+        ShowBitmap(window.context, cracker.x, cracker.y, cracker.width, cracker.height, waffle.hBitmap);
+    }
+    if (hero.room == ice.room && ice.picked == 0) {
+        ShowBitmap(window.context, ice.x, ice.y, ice.width, ice.height, water.hBitmap);
+    }
+    for (int i = 0; i < waterlocs.size(); i + 3) {
+        if (waterlocs[i + 2] == hero.room || waterlocs[i + 1] == 80 && (waterlocs[i] == 80 || waterlocs[i] == 180 || waterlocs[i] == 280)) {
+            ShowBitmap(window.context, waterlocs[i], waterlocs[i+1], 70, 70, water.hBitmap);
         }
-        else if (slot2 == 1) {
-            ShowBitmap(window.context, window.width - 180, window.height - 80, 70, 70, water.hBitmap);
-        }
-        else if (slot3 == 1) {
-            ShowBitmap(window.context, window.width - 280, window.height - 80, 70, 70, water.hBitmap);
-        }
-        //water.picked = 0;
     }
 }
 
@@ -453,10 +481,15 @@ void collCase() {
         coll(man);
     }
     else if (hero.room == 7) {
-        coll(skeleton);
+        if (skeleton.hp > 0) {
+            coll(skeleton);
+        }
     }
     else if (hero.room == 9) {
-        coll(pool); coll(aquaman);
+        coll(pool);
+        if (aquaman.hp > 0) {
+            coll(aquaman);
+        }
     }
     else if (hero.room == 13) {
         coll(box13);
@@ -769,7 +802,7 @@ void moveEnemy(sprite& enem) {
 }
 
 int NameCase(item ite) {
-    if (0 <= hero.x - ite.x <= 170 || 0 <= ite.x - hero.x <= 250 || 0 <= hero.y - ite.y <= 170 || 0 <= ite.y - hero.y <= 250) {
+    if (hero.x - ite.x <= 170 && ite.x - hero.x <= 250 && hero.y - ite.y <= 170 && ite.y - hero.y <= 250 && hero.room == ite.room) {
         return 1;
     }
     else {
@@ -788,7 +821,34 @@ void itemName() {
         TextOutA(window.context, window.width - 200, window.height - 100, "waffle", 6);
     }
     else if (NameCase(water) == 1) {
-        TextOutA(window.context, window.width - 200, window.height - 100, "water", 1);
+        TextOutA(window.context, window.width - 200, window.height - 100, "water", 5);
+    }
+    else if (NameCase(frozenHalva) == 1) {
+        TextOutA(window.context, window.width - 250, window.height - 100, "frozen halva", 12);
+    }
+    else if (NameCase(cream) == 1) {
+        TextOutA(window.context, window.width - 200, window.height - 100, "cream", 5);
+    }
+    else if (NameCase(frozenKey) == 1) {
+        TextOutA(window.context, window.width - 250, window.height - 100, "frozen key", 10);
+    }
+    else if (NameCase(copper) == 1) {
+        TextOutA(window.context, window.width - 200, window.height - 100, "copper", 6);
+    }
+    else if (NameCase(frozenWaffle) == 1) {
+        TextOutA(window.context, window.width - 250, window.height - 100, "frozen waffle", 13);
+    }
+    else if (NameCase(cracker) == 1) {
+        TextOutA(window.context, window.width - 200, window.height - 100, "cracker", 7);
+    }
+    else if (NameCase(ice) == 1) {
+        TextOutA(window.context, window.width - 200, window.height - 100, "ice", 3);
+    }
+    for (int i = 0; i < waterlocs.size(); i + 3) {
+        if (hero.x - waterlocs[i] <= 170 && waterlocs[i] - hero.x <= 250 && hero.y - waterlocs[i+1] <= 170 && waterlocs[i+1] - hero.y <= 250 && hero.room == waterlocs[i+2] &&
+            waterlocs[i+1] != 80 && waterlocs[i] != 80 && waterlocs[i] != 180 && waterlocs[i] != 280) {
+            TextOutA(window.context, window.width - 200, window.height - 100, "water", 5);
+        }
     }
 }
 
@@ -865,8 +925,9 @@ void pickItem() {
         slot0 = 3;
     }
     int slot00 = slot();
-    if (pickCase(halva, slot0) == slot00 || pickCase(key, slot0) == slot00 || pickCase(waffle, slot0) == slot00 || pickCase(water, slot0)
-        == slot00) {
+    if (pickCase(halva, slot0) == slot00 || pickCase(key, slot0) == slot00 || pickCase(waffle, slot0) == slot00 || pickCase(frozenHalva, slot0) == slot00 || pickCase(cream, slot0)
+        == slot00 || pickCase(frozenKey, slot0) == slot00 || pickCase(copper, slot0) == slot00 || pickCase(frozenWaffle, slot0) == slot00 || pickCase(cracker, slot0) == slot00
+        || pickCase(ice, slot0) == slot00) {
         if (slot00 == 1) {
             slot1 = 1;
         }
@@ -876,14 +937,27 @@ void pickItem() {
         else if (slot00 == 3) {
             slot3 = 1;
         }
-        if (pickCase(water, slot0) == slot00) {
-            water.x = window.width - 350;
-            water.y = window.height / 2;
+    }
+    if (hero.room == 9 && window.width - 350 >= hero.x && window.width - 280 <= hero.x + hero.width && window.height / 2 >= hero.y && window.height / 2 + 70 <= hero.y + hero.height) {
+        if (slot00 == 1) {
+            waterlocs.push_back(80);
+            waterlocs.push_back(80);
+            waterlocs.push_back(9);
+        }
+        else if (slot00 == 2) {
+            waterlocs.push_back(180);
+            waterlocs.push_back(80);
+            waterlocs.push_back(9);
+        }
+        else if (slot00 == 3) {
+            waterlocs.push_back(280);
+            waterlocs.push_back(80);
+            waterlocs.push_back(9);
         }
     }
     for (int i = 0; i < waterlocs.size(); i + 3) {
-        if (waterlocs[i] >= hero.x && waterlocs[i] + 70 <= hero.x + hero.width && waterlocs[i + 1] >= hero.y && waterlocs[i + 1] + 70 <= hero.y + hero.height ||
-            waterlocs[i] <= p.x && waterlocs[i] + 70 >= p.x && waterlocs[i + 1] <= p.y && waterlocs[i + 1] + 70 >= p.y) {
+        if (waterlocs[i] >= hero.x && waterlocs[i] + 70 <= hero.x + hero.width && waterlocs[i + 1] >= hero.y && waterlocs[i + 1] + 70 <= hero.y + hero.height &&
+            hero.room == waterlocs[i+2] || waterlocs[i] <= p.x && waterlocs[i] + 70 >= p.x && waterlocs[i + 1] <= p.y && waterlocs[i + 1] + 70 >= p.y) {
             waterlocs[i+1] = 80;
             waterlocs[i+2] = hero.room;
             if (slot00 == 1) {
@@ -905,7 +979,8 @@ void pickItem() {
 void dropItem() {
     while (not(GetAsyncKeyState('1')) && not(GetAsyncKeyState('2')) && not(GetAsyncKeyState('3'))) {
         int slot0 = slot();
-        if (dropCase(halva) == slot0 || dropCase(key) == slot0 || dropCase(waffle) == slot0) {
+        if (dropCase(halva) == slot0 || dropCase(key) == slot0 || dropCase(waffle) == slot0 || dropCase(frozenHalva) == slot0 || dropCase(cream) == slot0 || dropCase(frozenKey)
+            == slot0 || dropCase(copper) == slot0 || dropCase(frozenWaffle) == slot0 || dropCase(cracker) == slot0 || dropCase(ice) == slot0) {
             if (slot0 == 1) {
                 slot1 = 0;
             }
@@ -917,8 +992,27 @@ void dropItem() {
             }
         }
         for (int i = 0; i < waterlocs.size(); i + 3) {
-            if (waterlocs[i + 1] == 80 && (waterlocs[i] == 80 || waterlocs[i] == 180 || waterlocs[i] == 280)) {
-
+            if (hero.room != 3 && (GetAsyncKeyState('1') && waterlocs[i] == window.width - 80 && waterlocs[i+1] == window.height - 80 ||
+                GetAsyncKeyState('2') && waterlocs[i] == window.width - 180 && waterlocs[i + 1] == window.height - 80 || GetAsyncKeyState('3') &&
+                waterlocs[i] == window.width - 280 && waterlocs[i + 1] == window.height - 80)) {
+                if (hero.room == 5 || hero.room == 11 || hero.room == 12) {
+                    waterlocs[i] = p.x;
+                    waterlocs[i + 1] = p.y;
+                }
+                else {
+                    waterlocs[i] = hero.x;
+                    waterlocs[i + 1] = hero.y;
+                }
+                waterlocs[i + 2] = hero.room;
+                if (waterlocs[i] == window.width - 80) {
+                    slot1 = 0;
+                }
+                else if (waterlocs[i] == window.width - 180) {
+                    slot2 = 0;
+                }
+                else if (waterlocs[i] == window.width - 280) {
+                    slot3 = 0;
+                }
             }
         }
     }
@@ -931,18 +1025,69 @@ void eatCase(item& i) {
         i.picked = 0;
         hero.hp += 2;
     }
+    if (cream.x == hero.x && cream.y == hero.y) {
+        hero.dmg += 2;
+    }
+}
+
+int UseCase(item ite) {
+    if (ite.x >= hero.x && ite.x + ite.width <= hero.x + hero.width && ite.y >= hero.y && ite.y + ite.height <= hero.y + hero.height || ite.x <= p.x && ite.x + ite.width >= p.x &&
+        ite.y <= p.y && ite.y + ite.height >= p.y) {
+        return 1;
+    }
 }
 
 void eatItem() {
     while (not(GetAsyncKeyState('1')) && not(GetAsyncKeyState('2')) && not(GetAsyncKeyState('3'))) {
         dropItem();
-        eatCase(halva); eatCase(waffle); eatCase(water);
+        eatCase(halva); eatCase(waffle); eatCase(water); eatCase(frozenHalva); eatCase(cream); eatCase(frozenWaffle); eatCase(cracker); eatCase(ice);
+        for (int i = 0; i < waterlocs.size(); i + 3) {
+            if (waterlocs[i] == hero.x && waterlocs[i+1] == hero.y) {
+                waterlocs[i] = -100;
+                waterlocs[i + 1] = -100;
+                hero.hp += 2;
+            }
+        }
     }
 }
 
 void useItem() {
     while (not(GetAsyncKeyState('1')) && not(GetAsyncKeyState('2')) && not(GetAsyncKeyState('3'))) {
         dropItem();
+        if (UseCase(halva) == 1) {
+            halva.x = halva.y = -100;
+            if (hero.room == 10) {
+                frozenHalva.x = hero.x;
+                frozenHalva.y = hero.y;
+            }
+            else if (hero.room == 12) {
+                cream.x = hero.x;
+                cream.y = hero.y;
+            }
+        }
+        if (UseCase(key) == 1) {
+            key.x = key.y = -100;
+            rage = 1;
+            if (hero.room == 10) {
+                frozenKey.x = hero.x;
+                frozenKey.y = hero.y;
+            }
+            else if (hero.room == 12) {
+                copper.x = hero.x;
+                copper.y = hero.y;
+            }
+        }
+        if (UseCase(waffle) == 1) {
+            waffle.x = waffle.y = -100;
+            if (hero.room == 10) {
+                frozenWaffle.x = hero.x;
+                frozenWaffle.y = hero.y;
+            }
+            else if (hero.room == 12) {
+                cracker.x = hero.x;
+                cracker.y = hero.y;
+            }
+        }
     }
 }
 
@@ -1035,7 +1180,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR  lpCm
         else {
             move13();
         }
-        if (hero.room == 2) {
+        if (hero.room == 2 && rage == 1) {
             moveEnemy(man);
         }
         else if (hero.room == 7 && skeleton.hp > 0) {
@@ -1053,7 +1198,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR  lpCm
         if (GetAsyncKeyState('E')) {
             eatItem();
         }
-        if (GetAsyncKeyState('U') && (hero.room == 12 || hero.room == 10)) {
+        if (GetAsyncKeyState('U') && (hero.room == 12 || hero.room == 10 || hero.room == 2)) {
             useItem();
         }
         if (hero.hp <= 0 || man.hp <= 0 || hero.room == 13 && key.picked == 1 && hero.x == 0) {
@@ -1119,13 +1264,14 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR  lpCm
         }
         lastTime = timeGetTime();
         currentTime = lastTime;
-        if (currentTime - lastTime <= 3000) {
+        while (currentTime - lastTime <= 3000) {
             if (hero.hp <= 0) {
                 TextOutA(window.context, window.width / 2, 100, "you died", 8);
             }
             else if (man.hp <= 0) {
-                TextOutA(window.context, window.width / 2, 100, "no need to serve him anymore", 27);
+                TextOutA(window.context, window.width / 2, 100, "no need to serve him anymore", 28);
             }
+            BitBlt(window.device_context, 0, 0, window.width, window.height, window.context, 0, 0, SRCCOPY);
             currentTime = timeGetTime();
         }
     }
