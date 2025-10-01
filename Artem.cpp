@@ -31,9 +31,9 @@ obj racket, ball;
 boxl1 box11, box12, box13, box14, box15, box16, box17, box18, box21, box22, box23, box24, box25, box26, box27, box31, box32, box33, box34,
 box35, box36;
 boxl2 box41, box42, box43, box44, box45, box46, box47, box51, box52, box53, box54, box55, box56, box61, box62, box63, box64, box65;
-boxl1 boxes1[] { box11, box12, box13, box14, box15, box16, box17, box18, box21, box22, box23, box24, box25, box26, box27, box31, box32, box33, box34,
+boxl1 boxes1[]{ box11, box12, box13, box14, box15, box16, box17, box18, box21, box22, box23, box24, box25, box26, box27, box31, box32, box33, box34,
 box35, box36 };
-boxl2 boxes2[] { box41, box42, box43, box44, box45, box46, box47, box51, box52, box53, box54, box55, box56, box61, box62, box63, box64, box65 };
+boxl2 boxes2[]{ box41, box42, box43, box44, box45, box46, box47, box51, box52, box53, box54, box55, box56, box61, box62, box63, box64, box65 };
 int lives = 3;
 int score = 0;
 int level = 1;
@@ -106,7 +106,7 @@ void ShowBitmap(HDC hDC, int x, int y, int x1, int y1, HBITMAP hBitmapBall, bool
 
 	if (hOldbm) {
 		GetObject(hBitmapBall, sizeof(BITMAP), (LPSTR)&bm);
-			StretchBlt(hDC, x, y, x1, y1, hMemDC, 0, 0, bm.bmWidth, bm.bmHeight, SRCCOPY);
+		StretchBlt(hDC, x, y, x1, y1, hMemDC, 0, 0, bm.bmWidth, bm.bmHeight, SRCCOPY);
 		SelectObject(hMemDC, hOldbm);
 	}
 	DeleteDC(hMemDC);
@@ -242,11 +242,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	_In_ LPWSTR    lpCmdLine,
 	_In_ int       nCmdShow) {
 
-	UNREFERENCED_PARAMETER(hPrevInstance);
-	UNREFERENCED_PARAMETER(lpCmdLine);
+	//UNREFERENCED_PARAMETER(hPrevInstance);
+	//UNREFERENCED_PARAMETER(lpCmdLine);
 	InitGame();
 	InitWindow();
 	setText();
+	ShowCursor(NULL);
 	while (not(GetAsyncKeyState('A')) && not(GetAsyncKeyState('D'))) {
 		TextOutA(window.context, window.width / 2 - 100, window.height / 2, "Rumble in the Jungle", 20);
 		TextOutA(window.context, window.width / 2 - 105, window.height / 2 + 100, "Press A or D to begin", 21);
@@ -286,9 +287,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		if (lives == 0) {
 			break;
 		}
+		BitBlt(window.device_context, 0, 0, window.width, window.height, window.context, 0, 0, SRCCOPY);
+		Sleep(16);
 	}
 }
-
-//int main() {
-//	return 0;
-//}
