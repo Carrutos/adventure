@@ -15,38 +15,35 @@ struct obj {
 
 struct boxl1 {
 	float x, y;
-	int width = window.width / 8;
-	int height = window.height / 8;
+	int width;
+	int height;
 	HBITMAP hBitmap = (HBITMAP)LoadImageA(NULL, "mandrill.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 };
 
 struct boxl2 {
 	float x, y;
-	int width = window.width / 7;
-	int height = window.height / 8;
+	int width;
+	int height;
 	HBITMAP hBitmap = (HBITMAP)LoadImageA(NULL, "tiger.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 };
 
 obj racket, ball;
-//boxl1 box11, box12, box13, box14, box15, box16, box17, box18, box21, box22, box23, box24, box25, box26, box27, box31, box32, box33, box34,
-//box35, box36;
-//boxl2 box41, box42, box43, box44, box45, box46, box47, box51, box52, box53, box54, box55, box56, box61, box62, box63, box64, box65;
 boxl1 boxes1[21]{};
 boxl2 boxes2[18]{};
 int lives = 3;
 int score = 0;
 int level = 1;
+int ballSafe = -200;
 HBITMAP hBack;
 
 void InitGame() {
-
-	racket.x = window.height / 2 - 75;
+	racket.x = window.width / 2 - 75;
 	racket.y = window.height - 30;
 	racket.width = 150;
 	racket.height = 30;
 	racket.speed = 10;
-	ball.x = window.width / 2;
-	ball.y = window.height/2;
+	ball.x = window.width / 2 - 50;
+	ball.y = window.height - 130;
 	ball.width = ball.height = 100;
 	ball.speed = 8;
 	racket.hBitmap = (HBITMAP)LoadImageA(NULL, "racket.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
@@ -57,27 +54,31 @@ void InitGame() {
 			boxes1[i].y = 50;
 		}
 		else if (i < 15) {
-			boxes1[i].x = window.width / 8 * (i - 8) + window.height / 16;
+			boxes1[i].x = window.width / 8 * (i - 8) + window.width / 16;
 			boxes1[i].y = 50 + window.height / 8;
 		}
 		else {
-			boxes1[i].x = window.width / 8 * (i - 16);
+			boxes1[i].x = window.width / 8 * (i - 14);
 			boxes1[i].y = 50 + window.height / 4;
 		}
+		boxes1[i].width = window.width / 8;
+		boxes1[i].height = window.height / 8;
 	}
 	for (int i = 0; i < 18; i++) {
 		if (i < 7) {
 			boxes2[i].x = window.width / 7 * i;
-			boxes2[i].y = -200 - window.height / 4;
+			boxes2[i].y = ballSafe - window.height / 4;
 		}
 		else if (i < 13) {
-			boxes2[i].x = window.width / 7 * (i - 8) + window.height / 14;
-			boxes2[i].y = -200 - window.height / 8;
+			boxes2[i].x = window.width / 7 * (i - 7) + window.width / 14;
+			boxes2[i].y = ballSafe - window.height / 8;
 		}
 		else {
-			boxes2[i].x = window.width / 7 * (i - 16);
-			boxes2[i].y = -200;
+			boxes2[i].x = window.width / 7 * (i - 12);
+			boxes2[i].y = ballSafe;
 		}
+		boxes2[i].width = window.width / 7;
+		boxes2[i].height = window.height / 8;
 	}
 	hBack = (HBITMAP)LoadImageA(NULL, "jungle.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 }
@@ -141,7 +142,7 @@ void coll() {
 		ball.dirx = 1;
 	}
 	if (ball.x + ball.width >= window.width) {
-		ball.x = window.width;
+		ball.x = window.width - ball.width;
 		ball.dirx = -1;
 	}
 	if (ball.y <= 0) {
@@ -150,86 +151,114 @@ void coll() {
 	}
 	if (level == 1) {
 		for (int i = 0; i < 21; i++) {
-			if (ball.x + ball.width >= boxes1[i].x && ball.y < boxes1[i].y + boxes1[i].height && ball.y + ball.height > boxes1[i].y && ball.x + ball.width <= boxes1[i].x + ball.speed) {
+			if (ball.x + ball.width >= boxes1[i].x && ball.y < boxes1[i].y + boxes1[i].height && ball.y + ball.height > boxes1[i].y && ball.x + ball.width <= boxes1[i].x + ball.speed + 5) {
 				ball.x = boxes1[i].x - 1 - ball.width;
 				ball.dirx = -1;
-				boxes1[i].x = boxes1[i].y = -200;
+				score ++;
+				boxes1[i].x = boxes1[i].y = ballSafe;
 			}
-			if (ball.x <= boxes1[i].x + boxes1[i].width && ball.y < boxes1[i].y + boxes1[i].height && ball.y + ball.height > boxes1[i].y && ball.x >= boxes1[i].x + boxes1[i].width - ball.speed) {
+			if (ball.x <= boxes1[i].x + boxes1[i].width && ball.y < boxes1[i].y + boxes1[i].height && ball.y + ball.height > boxes1[i].y && ball.x >= boxes1[i].x + boxes1[i].width - ball.speed - 5) {
 				ball.x = boxes1[i].x + boxes1[i].width + 1;
 				ball.dirx = 1;
-				boxes1[i].x = boxes1[i].y = -200;
+				score++;
+				boxes1[i].x = boxes1[i].y = ballSafe;
 			}
-			if (ball.y <= boxes1[i].y + boxes1[i].height && ball.x < boxes1[i].x + boxes1[i].width && ball.x + ball.width > boxes1[i].x && ball.y >= boxes1[i].y + boxes1[i].height - ball.speed) {
+			if (ball.y <= boxes1[i].y + boxes1[i].height && ball.x < boxes1[i].x + boxes1[i].width && ball.x + ball.width > boxes1[i].x && ball.y >= boxes1[i].y + boxes1[i].height - ball.speed - 5) {
 				ball.y = boxes1[i].y + boxes1[i].height + 1;
 				ball.diry = 1;
-				boxes1[i].x = boxes1[i].y = -200;
+				score++;
+				boxes1[i].x = boxes1[i].y = ballSafe;
 			}
-			if (ball.y + ball.height >= boxes1[i].y && ball.x < boxes1[i].x + boxes1[i].width && ball.x + ball.width > boxes1[i].x && ball.y + ball.height <= boxes1[i].y + ball.speed) {
+			if (ball.y + ball.height >= boxes1[i].y && ball.x < boxes1[i].x + boxes1[i].width && ball.x + ball.width > boxes1[i].x && ball.y + ball.height <= boxes1[i].y + ball.speed + 5) {
 				ball.y = boxes1[i].y - 1 - ball.height;
 				ball.diry = -1;
-				boxes1[i].x = boxes1[i].y = -200;
+				score++;
+				boxes1[i].x = boxes1[i].y = ballSafe;
 			}
 		}
 	}
 	else if (level == 2) {
 		for (int i = 0; i < 18; i++) {
-			if (ball.x + ball.width >= boxes2[i].x && ball.y < boxes2[i].y + boxes2[i].height && ball.y + ball.height > boxes2[i].y && ball.x + ball.width <= boxes2[i].x + ball.speed) {
+			if (ball.x + ball.width >= boxes2[i].x && ball.y < boxes2[i].y + boxes2[i].height && ball.y + ball.height > boxes2[i].y && ball.x + ball.width <= boxes2[i].x + ball.speed + 5) {
 				ball.x = boxes2[i].x - 1 - ball.width;
 				ball.dirx = -1;
-				boxes2[i].x = boxes2[i].y = -200;
+				score++;
+				boxes2[i].x = boxes2[i].y = ballSafe;
 			}
-			if (ball.x <= boxes2[i].x + boxes2[i].width && ball.y < boxes2[i].y + boxes2[i].height && ball.y + ball.height > boxes2[i].y && ball.x >= boxes2[i].x + boxes2[i].width - ball.speed) {
+			if (ball.x <= boxes2[i].x + boxes2[i].width && ball.y < boxes2[i].y + boxes2[i].height && ball.y + ball.height > boxes2[i].y && ball.x >= boxes2[i].x + boxes2[i].width - ball.speed - 5) {
 				ball.x = boxes2[i].x + boxes2[i].width + 1;
 				ball.dirx = 1;
-				boxes2[i].x = boxes2[i].y = -200;
+				score++;
+				boxes2[i].x = boxes2[i].y = ballSafe;
 			}
-			if (ball.y <= boxes2[i].y + boxes2[i].height && ball.x < boxes2[i].x + boxes2[i].width && ball.x + ball.width > boxes2[i].x && ball.y >= boxes2[i].y + boxes2[i].height - ball.speed) {
+			if (ball.y <= boxes2[i].y + boxes2[i].height && ball.x < boxes2[i].x + boxes2[i].width && ball.x + ball.width > boxes2[i].x && ball.y >= boxes2[i].y + boxes2[i].height - ball.speed - 5) {
 				ball.y = boxes2[i].y + boxes2[i].height + 1;
 				ball.diry = 1;
-				boxes2[i].x = boxes2[i].y = -200;
+				score++;
+				boxes2[i].x = boxes2[i].y = ballSafe;
 			}
-			if (ball.y + ball.height >= boxes2[i].y && ball.x < boxes2[i].x + boxes2[i].width && ball.x + ball.width > boxes2[i].x && ball.y + ball.height <= boxes2[i].y + ball.speed) {
+			if (ball.y + ball.height >= boxes2[i].y && ball.x < boxes2[i].x + boxes2[i].width && ball.x + ball.width > boxes2[i].x && ball.y + ball.height <= boxes2[i].y + ball.speed + 5) {
 				ball.y = boxes2[i].y - 1 - ball.height;
 				ball.diry = -1;
-				boxes2[i].x = boxes2[i].y = -200;
+				score++;
+				boxes2[i].x = boxes2[i].y = ballSafe;
 			}
 		}
 	}
-	if (ball.x + ball.width >= racket.x && ball.y < racket.y + racket.height && ball.y + ball.height > racket.y && ball.x + ball.width <= racket.x + ball.speed) {
+	if (ball.x + ball.width >= racket.x && ball.y < racket.y + racket.height && ball.y + ball.height > racket.y && ball.x + ball.width <= racket.x + ball.speed + 5) {
 		ball.x = racket.x - 1 - ball.width;
 		ball.dirx = -1;
 	}
-	if (ball.x <= racket.x + racket.width && ball.y < racket.y + racket.height && ball.y + ball.height > racket.y && ball.x >= racket.x + racket.width - ball.speed) {
+	if (ball.x <= racket.x + racket.width && ball.y < racket.y + racket.height && ball.y + ball.height > racket.y && ball.x >= racket.x + racket.width - ball.speed - 5) {
 		ball.x = racket.x + racket.width + 1;
 		ball.dirx = 1;
 	}
-	if (ball.y + ball.height >= racket.y && ball.x < racket.x + racket.width && ball.x + ball.width > racket.x && ball.y + ball.height <= racket.y + ball.speed) {
+	if (ball.y + ball.height >= racket.y && ball.x < racket.x + racket.width && ball.x + ball.width > racket.x && ball.y + ball.height <= racket.y + ball.speed + 5) {
 		ball.y = racket.y - 1 - ball.height;
 		ball.diry = -1;
+	}
+}
+
+void tutorial() {
+	while (not(GetAsyncKeyState('A')) && not(GetAsyncKeyState('D'))) {
+		ball.x = racket.x + 25;
+		ball.y = window.height - 130;
+		ShowBitmap(window.context, 0, 0, window.width, window.height, hBack);
+		ShowBitmap(window.context, racket.x, racket.y, racket.width, racket.height, racket.hBitmap);
+		ShowBitmap(window.context, ball.x, ball.y, ball.width, ball.height, ball.hBitmap);
+		TextOutA(window.context, window.width / 2 - 100, window.height / 2, "Rumble in the Jungle", 20);
+		TextOutA(window.context, window.width / 2 - 105, window.height / 2 + 100, "Press A or D to begin", 21);
+		if (GetAsyncKeyState('A')) {
+			ball.dirx = -1;
+		}
+		else if (GetAsyncKeyState('D')) {
+			ball.dirx = 1;
+		}
+		BitBlt(window.device_context, 0, 0, window.width, window.height, window.context, 0, 0, SRCCOPY);
+		Sleep(16);
 	}
 }
 
 void newLevel() {
 	int hit = 0;
 	for (int i = 0; i < 21; i++) {
-		if (boxes1[i].x == -200) {
+		if (boxes1[i].x == ballSafe) {
 			hit++;
 		}
 	}
 	if (hit == 21) {
+		level = 2;
 		ball.x = window.width / 2 - 50;
 		ball.y = window.height - 130;
-		while (boxes2[1].y != 50) {
-			for (int i = 0; i < 18; i++) {
-				boxes2[i].y += 5;
-			}
+		for (int i = 0; i < 18; i++) {
+			boxes2[i].y += 250 + window.height / 4;
 		}
+		tutorial();
 	}
 }
 
-std::string A = "score: " + std::to_string((float)ball.x);
-std::string B = "lives: " + std::to_string((int)lives);
+std::string A;
+std::string B;
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	_In_opt_ HINSTANCE hPrevInstance,
@@ -242,50 +271,42 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	InitGame();
 	setText();
 	ShowCursor(NULL);
-	/*while (not(GetAsyncKeyState('A')) && not(GetAsyncKeyState('D'))) {
-		ShowBitmap(window.context, 0, 0, window.width, window.height, hBack);
-		ShowBitmap(window.context, racket.x, racket.y, racket.width, racket.height, racket.hBitmap);
-		ShowBitmap(window.context, ball.x, ball.y, ball.width, ball.height, ball.hBitmap);
-		TextOutA(window.context, window.width / 2 - 100, window.height / 2, "Rumble in the Jungle", 20);
-		TextOutA(window.context, window.width / 2 - 105, window.height / 2 + 100, "Press A or D to begin", 21);
-		if (GetAsyncKeyState('A')) {
-			ball.dirx = -1;
-		}
-		else if (GetAsyncKeyState('D')) {
-			ball.dirx = 1;
-		}
-	}*/
+	tutorial();
 	while (not(GetAsyncKeyState(VK_ESCAPE))) {
 		ShowBitmap(window.context, 0, 0, window.width, window.height, hBack);
 		ShowBitmap(window.context, racket.x, racket.y, racket.width, racket.height, racket.hBitmap);
 		ShowBitmap(window.context, ball.x, ball.y, ball.width, ball.height, ball.hBitmap);
 		for (int i = 0; i < 21; i++) {
-			ShowBitmap(window.context, boxes1[i].x, boxes1[i].y, window.width / 8, window.width / 8, boxes1[i].hBitmap);
+			ShowBitmap(window.context, boxes1[i].x, boxes1[i].y, window.width / 8, window.height / 8, boxes1[i].hBitmap);
 		}
 		if (level == 2) {
 			for (int i = 0; i < 18; i++) {
-				ShowBitmap(window.context, boxes2[i].x, boxes2[i].y, window.width / 7, window.width / 8, boxes2[i].hBitmap);
+				ShowBitmap(window.context, boxes2[i].x, boxes2[i].y, window.width / 7, window.height / 8, boxes2[i].hBitmap);
 			}
 		}
+		A = "score: " + std::to_string((int)score);
+		B = "lives: " + std::to_string((int)lives);
 		TextOutA(window.context, 10, window.height - 100, A.c_str(), 9);
 		TextOutA(window.context, 10, window.height - 50, B.c_str(), 9);
-		//coll();
-		//ballMove();
-		//newLevel();
-		/*if (GetAsyncKeyState('A')) {
+		coll();
+		ballMove();
+		if (level == 1) {
+			newLevel();
+		}
+		if (GetAsyncKeyState('A') && racket.x > 0) {
 			racket.x -= racket.speed;
 		}
-		else if (GetAsyncKeyState('D')) {
+		else if (GetAsyncKeyState('D') && racket.x + racket.width < window.width) {
 			racket.x += racket.speed;
 		}
-		if (ball.x >= window.height - ball.height) {
+		if (ball.y >= window.height - ball.height) {
 			lives -= 1;
-			ball.x = window.width / 2 - 50;
-			ball.y = window.height - 130;
+			ball.diry = -1;
+			tutorial();
 		}
 		if (lives == 0) {
-			break;
-		}*/
+			//break;
+		}
 		BitBlt(window.device_context, 0, 0, window.width, window.height, window.context, 0, 0, SRCCOPY);
 		Sleep(16);
 	}
