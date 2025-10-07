@@ -137,43 +137,47 @@ void ballMove() {
 }
 
 void coll() {
-	if (ball.x <= 0) {
-		ball.x == 0;
+	if (ball.x - ball.speed <= 0) {
+		ball.x = 1;
 		ball.dirx = 1;
 	}
-	if (ball.x + ball.width >= window.width) {
-		ball.x = window.width - ball.width;
+	if (ball.x + ball.width + ball.speed >= window.width) {
+		ball.x = window.width - ball.width - 1;
 		ball.dirx = -1;
 	}
-	if (ball.y <= 0) {
-		ball.y == 0;
+	if (ball.y - ball.speed <= 0) {
+		ball.y = 1;
 		ball.diry = 1;
 	}
 	if (level == 1) {
 		for (int i = 0; i < 21; i++) {
-			if (ball.x + ball.width >= boxes1[i].x && ball.y < boxes1[i].y + boxes1[i].height && ball.y + ball.height > boxes1[i].y && ball.x + ball.width <= boxes1[i].x + ball.speed + 5) {
-				ball.x = boxes1[i].x - 1 - ball.width;
+			if (ball.x + ball.width + ball.speed >= boxes1[i].x && ball.y < boxes1[i].y + boxes1[i].height && ball.y + ball.height > boxes1[i].y && ball.x + ball.width <= boxes1[i].x + ball.speed * 2) {
+				ball.x = boxes1[i].x - ball.width - 1;
 				ball.dirx = -1;
 				score ++;
 				boxes1[i].x = boxes1[i].y = ballSafe;
+				break;
 			}
-			if (ball.x <= boxes1[i].x + boxes1[i].width && ball.y < boxes1[i].y + boxes1[i].height && ball.y + ball.height > boxes1[i].y && ball.x >= boxes1[i].x + boxes1[i].width - ball.speed - 5) {
+			if (ball.x - ball.speed <= boxes1[i].x + boxes1[i].width && ball.y < boxes1[i].y + boxes1[i].height && ball.y + ball.height > boxes1[i].y && ball.x >= boxes1[i].x + boxes1[i].width - ball.speed * 2) {
 				ball.x = boxes1[i].x + boxes1[i].width + 1;
 				ball.dirx = 1;
 				score++;
 				boxes1[i].x = boxes1[i].y = ballSafe;
+				break;
 			}
-			if (ball.y <= boxes1[i].y + boxes1[i].height && ball.x < boxes1[i].x + boxes1[i].width && ball.x + ball.width > boxes1[i].x && ball.y >= boxes1[i].y + boxes1[i].height - ball.speed - 5) {
+			if (ball.y - ball.speed <= boxes1[i].y + boxes1[i].height && ball.x < boxes1[i].x + boxes1[i].width && ball.x + ball.width > boxes1[i].x && ball.y >= boxes1[i].y + boxes1[i].height - ball.speed * 2) {
 				ball.y = boxes1[i].y + boxes1[i].height + 1;
 				ball.diry = 1;
 				score++;
 				boxes1[i].x = boxes1[i].y = ballSafe;
+				break;
 			}
-			if (ball.y + ball.height >= boxes1[i].y && ball.x < boxes1[i].x + boxes1[i].width && ball.x + ball.width > boxes1[i].x && ball.y + ball.height <= boxes1[i].y + ball.speed + 5) {
-				ball.y = boxes1[i].y - 1 - ball.height;
+			if (ball.y + ball.height + ball.speed >= boxes1[i].y && ball.x < boxes1[i].x + boxes1[i].width && ball.x + ball.width > boxes1[i].x && ball.y + ball.height <= boxes1[i].y + ball.speed * 2) {
+				ball.y = boxes1[i].y - ball.height - 1;
 				ball.diry = -1;
 				score++;
 				boxes1[i].x = boxes1[i].y = ballSafe;
+				break;
 			}
 		}
 	}
@@ -184,37 +188,41 @@ void coll() {
 				ball.dirx = -1;
 				score++;
 				boxes2[i].x = boxes2[i].y = ballSafe;
+				break;
 			}
 			if (ball.x <= boxes2[i].x + boxes2[i].width && ball.y < boxes2[i].y + boxes2[i].height && ball.y + ball.height > boxes2[i].y && ball.x >= boxes2[i].x + boxes2[i].width - ball.speed - 5) {
 				ball.x = boxes2[i].x + boxes2[i].width + 1;
 				ball.dirx = 1;
 				score++;
 				boxes2[i].x = boxes2[i].y = ballSafe;
+				break;
 			}
 			if (ball.y <= boxes2[i].y + boxes2[i].height && ball.x < boxes2[i].x + boxes2[i].width && ball.x + ball.width > boxes2[i].x && ball.y >= boxes2[i].y + boxes2[i].height - ball.speed - 5) {
 				ball.y = boxes2[i].y + boxes2[i].height + 1;
 				ball.diry = 1;
 				score++;
 				boxes2[i].x = boxes2[i].y = ballSafe;
+				break;
 			}
 			if (ball.y + ball.height >= boxes2[i].y && ball.x < boxes2[i].x + boxes2[i].width && ball.x + ball.width > boxes2[i].x && ball.y + ball.height <= boxes2[i].y + ball.speed + 5) {
 				ball.y = boxes2[i].y - 1 - ball.height;
 				ball.diry = -1;
 				score++;
 				boxes2[i].x = boxes2[i].y = ballSafe;
+				break;
 			}
 		}
 	}
-	if (ball.x + ball.width >= racket.x && ball.y < racket.y + racket.height && ball.y + ball.height > racket.y && ball.x + ball.width <= racket.x + ball.speed + 5) {
-		ball.x = racket.x - 1 - ball.width;
+	if (ball.x + ball.width + ball.speed >= racket.x && ball.y < racket.y + racket.height && ball.y + ball.height > racket.y && ball.x + ball.width <= racket.x + ball.speed * 2) {
+		ball.x = racket.x - ball.width - 1;
 		ball.dirx = -1;
 	}
-	if (ball.x <= racket.x + racket.width && ball.y < racket.y + racket.height && ball.y + ball.height > racket.y && ball.x >= racket.x + racket.width - ball.speed - 5) {
+	if (ball.x - ball.speed <= racket.x + racket.width && ball.y < racket.y + racket.height && ball.y + ball.height > racket.y && ball.x >= racket.x + racket.width - ball.speed * 2) {
 		ball.x = racket.x + racket.width + 1;
 		ball.dirx = 1;
 	}
-	if (ball.y + ball.height >= racket.y && ball.x < racket.x + racket.width && ball.x + ball.width > racket.x && ball.y + ball.height <= racket.y + ball.speed + 5) {
-		ball.y = racket.y - 1 - ball.height;
+	if (ball.y + ball.height + ball.speed >= racket.y && ball.x < racket.x + racket.width && ball.x + ball.width > racket.x && ball.y + ball.height <= racket.y + ball.speed * 2) {
+		ball.y = racket.y - ball.height - 1;
 		ball.diry = -1;
 	}
 }
@@ -257,6 +265,23 @@ void newLevel() {
 	}
 }
 
+void die() {
+	if (ball.y >= window.height - ball.height) {
+		lives -= 1;
+		ball.diry = -1;
+		tutorial();
+	}
+}
+
+void racketMove() {
+	if (GetAsyncKeyState('A') && racket.x > 0) {
+		racket.x -= racket.speed;
+	}
+	else if (GetAsyncKeyState('D') && racket.x + racket.width < window.width) {
+		racket.x += racket.speed;
+	}
+}
+
 std::string A;
 std::string B;
 
@@ -264,9 +289,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	_In_opt_ HINSTANCE hPrevInstance,
 	_In_ LPWSTR    lpCmdLine,
 	_In_ int       nCmdShow) {
-
-	//UNREFERENCED_PARAMETER(hPrevInstance);
-	//UNREFERENCED_PARAMETER(lpCmdLine);
 	InitWindow();
 	InitGame();
 	setText();
@@ -288,22 +310,13 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		B = "lives: " + std::to_string((int)lives);
 		TextOutA(window.context, 10, window.height - 100, A.c_str(), 9);
 		TextOutA(window.context, 10, window.height - 50, B.c_str(), 9);
-		coll();
 		ballMove();
+		coll();
 		if (level == 1) {
 			newLevel();
 		}
-		if (GetAsyncKeyState('A') && racket.x > 0) {
-			racket.x -= racket.speed;
-		}
-		else if (GetAsyncKeyState('D') && racket.x + racket.width < window.width) {
-			racket.x += racket.speed;
-		}
-		if (ball.y >= window.height - ball.height) {
-			lives -= 1;
-			ball.diry = -1;
-			tutorial();
-		}
+		racketMove();
+		die();
 		if (lives == 0) {
 			//break;
 		}
