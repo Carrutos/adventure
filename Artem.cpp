@@ -27,13 +27,22 @@ struct boxl2 {
 	HBITMAP hBitmap = (HBITMAP)LoadImageA(NULL, "tiger.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 };
 
+struct box {
+	float x, y;
+	int width;
+	int height;
+	HBITMAP hBitmap;
+};
+
 obj racket, ball;
+box boxes[39]{};
 boxl1 boxes1[21]{};
 boxl2 boxes2[18]{};
 int lives = 3;
 int score = 0;
 int level = 1;
 int ballSafe = -200;
+int past = 0;
 HBITMAP hBack;
 
 void InitGame() {
@@ -46,6 +55,7 @@ void InitGame() {
 	ball.y = window.height - 130;
 	ball.width = ball.height = 100;
 	ball.speed = 8;
+	ball.dirx = 1;
 	racket.hBitmap = (HBITMAP)LoadImageA(NULL, "racket.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 	ball.hBitmap = (HBITMAP)LoadImageA(NULL, "ball.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 	for (int i = 0; i < 21; i++) {
@@ -122,21 +132,29 @@ void ShowBitmap(HDC hDC, int x, int y, int x1, int y1, HBITMAP hBitmapBall, bool
 }
 
 void ballMove() {
-	if (ball.dirx > 0) {
-		ball.x += ball.speed;
+	int move = 0;
+	if (past == ball.speed * 2) {
+		move = ball.speed;
 	}
 	else {
-		ball.x -= ball.speed;
+		move = ball.speed - past;
+	}
+	if (ball.dirx > 0) {
+		ball.x += move;
+	}
+	else {
+		ball.x -= move;
 	}
 	if (ball.diry > 0) {
-		ball.y += ball.speed;
+		ball.y += move;
 	}
 	else {
-		ball.y -= ball.speed;
+		ball.y -= move;
 	}
 }
 
 void coll() {
+	bool hita = false;
 	if (ball.x - ball.speed <= 0) {
 		ball.x = 1;
 		ball.dirx = 1;
@@ -154,30 +172,41 @@ void coll() {
 			if (ball.x + ball.width + ball.speed >= boxes1[i].x && ball.y < boxes1[i].y + boxes1[i].height && ball.y + ball.height > boxes1[i].y && ball.x + ball.width <= boxes1[i].x + ball.speed * 2) {
 				ball.x = boxes1[i].x - ball.width - 1;
 				ball.dirx = -1;
-				score ++;
+				score++;
+				past += ball.x + ball.width - boxes1[i].x - 1;
 				boxes1[i].x = boxes1[i].y = ballSafe;
+				hita = true;
 				break;
 			}
 			if (ball.x - ball.speed <= boxes1[i].x + boxes1[i].width && ball.y < boxes1[i].y + boxes1[i].height && ball.y + ball.height > boxes1[i].y && ball.x >= boxes1[i].x + boxes1[i].width - ball.speed * 2) {
 				ball.x = boxes1[i].x + boxes1[i].width + 1;
 				ball.dirx = 1;
 				score++;
+				past += ball.x - boxes1[i].x - boxes1[i].width + 1;
 				boxes1[i].x = boxes1[i].y = ballSafe;
+				hita = true;
 				break;
 			}
 			if (ball.y - ball.speed <= boxes1[i].y + boxes1[i].height && ball.x < boxes1[i].x + boxes1[i].width && ball.x + ball.width > boxes1[i].x && ball.y >= boxes1[i].y + boxes1[i].height - ball.speed * 2) {
 				ball.y = boxes1[i].y + boxes1[i].height + 1;
 				ball.diry = 1;
 				score++;
+				past += ball.y - boxes1[i].y - boxes1[i].height + 1;
 				boxes1[i].x = boxes1[i].y = ballSafe;
+				hita = true;
 				break;
 			}
 			if (ball.y + ball.height + ball.speed >= boxes1[i].y && ball.x < boxes1[i].x + boxes1[i].width && ball.x + ball.width > boxes1[i].x && ball.y + ball.height <= boxes1[i].y + ball.speed * 2) {
 				ball.y = boxes1[i].y - ball.height - 1;
 				ball.diry = -1;
 				score++;
+				past += ball.y + ball.height - boxes1[i].y - 1;
 				boxes1[i].x = boxes1[i].y = ballSafe;
+				hita = true;
 				break;
+			}
+			if (hita == false) {
+				past = ball.speed * 2;
 			}
 		}
 	}
@@ -273,12 +302,36 @@ void die() {
 	}
 }
 
+void trace() {
+	if (ball.diry == -1) {
+		for (int i = 0; i < 21; i++) {
+			if (ball.y - boxes1[i].y + boxes1[i].height <= ball.speed && ball.x < boxes1[i].x + boxes1[i].width && ball.x + ball.width > boxes1[i].x) {
+				
+			}
+		}
+	}
+}
+
 void racketMove() {
 	if (GetAsyncKeyState('A') && racket.x > 0) {
 		racket.x -= racket.speed;
 	}
 	else if (GetAsyncKeyState('D') && racket.x + racket.width < window.width) {
 		racket.x += racket.speed;
+	}
+}
+void ShowImage() {
+
+	ShowBitmap(window.context, 0, 0, window.width, window.height, hBack);
+	ShowBitmap(window.context, racket.x, racket.y, racket.width, racket.height, racket.hBitmap);
+	ShowBitmap(window.context, ball.x, ball.y, ball.width, ball.height, ball.hBitmap);
+	for (int i = 0; i < 21; i++) {
+		ShowBitmap(window.context, boxes1[i].x, boxes1[i].y, window.width / 8, window.height / 8, boxes1[i].hBitmap);
+	}
+	if (level == 2) {
+		for (int i = 0; i < 18; i++) {
+			ShowBitmap(window.context, boxes2[i].x, boxes2[i].y, window.width / 7, window.height / 8, boxes2[i].hBitmap);
+		}
 	}
 }
 
@@ -295,23 +348,34 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	ShowCursor(NULL);
 	tutorial();
 	while (not(GetAsyncKeyState(VK_ESCAPE))) {
-		ShowBitmap(window.context, 0, 0, window.width, window.height, hBack);
-		ShowBitmap(window.context, racket.x, racket.y, racket.width, racket.height, racket.hBitmap);
-		ShowBitmap(window.context, ball.x, ball.y, ball.width, ball.height, ball.hBitmap);
-		for (int i = 0; i < 21; i++) {
-			ShowBitmap(window.context, boxes1[i].x, boxes1[i].y, window.width / 8, window.height / 8, boxes1[i].hBitmap);
+		ShowImage();
+		int rayx, rayy;
+		if (ball.dirx == 1) {
+			rayx = ball.x + ball.width;
 		}
-		if (level == 2) {
-			for (int i = 0; i < 18; i++) {
-				ShowBitmap(window.context, boxes2[i].x, boxes2[i].y, window.width / 7, window.height / 8, boxes2[i].hBitmap);
-			}
+		else {
+			rayx = ball.x;
+		}
+		if (ball.diry == 1) {
+			rayy = ball.y + ball.height;
+		}
+		else {
+			rayy = ball.y;
+		}
+		while (rayx < window.width && rayx > 0 && rayy < window.height && rayy > 0) {
+			ShowBitmap(window.context, rayx, rayy, 4, 4, ball.hBitmap);
+			rayx = rayx + 4 * ball.dirx;
+			rayy = rayy + 4 * ball.diry;
 		}
 		A = "score: " + std::to_string((int)score);
 		B = "lives: " + std::to_string((int)lives);
 		TextOutA(window.context, 10, window.height - 100, A.c_str(), 9);
 		TextOutA(window.context, 10, window.height - 50, B.c_str(), 9);
+		while (past < ball.speed) {
+			coll();
+		}
 		ballMove();
-		coll();
+		past = 0;
 		if (level == 1) {
 			newLevel();
 		}
