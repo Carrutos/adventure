@@ -13,37 +13,23 @@ struct obj {
 	HBITMAP hBitmap;
 };
 
-struct boxl1 {
-	float x, y;
-	int width;
-	int height;
-	HBITMAP hBitmap = (HBITMAP)LoadImageA(NULL, "mandrill.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-};
-
-struct boxl2 {
-	float x, y;
-	int width;
-	int height;
-	HBITMAP hBitmap = (HBITMAP)LoadImageA(NULL, "tiger.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-};
-
 struct box {
 	float x, y;
 	int width;
 	int height;
-	HBITMAP hBitmap;
 };
 
 obj racket, ball;
 box boxes[39]{};
 boxl1 boxes1[21]{};
 boxl2 boxes2[18]{};
+box boxes[39]{};
 int lives = 3;
 int score = 0;
 int level = 1;
 int ballSafe = -200;
 int past = 0;
-HBITMAP hBack;
+HBITMAP hBack, mandrill, tiger;
 
 void InitGame() {
 	racket.x = window.width / 2 - 75;
@@ -58,7 +44,10 @@ void InitGame() {
 	ball.dirx = 1;
 	racket.hBitmap = (HBITMAP)LoadImageA(NULL, "racket.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 	ball.hBitmap = (HBITMAP)LoadImageA(NULL, "ball.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-	for (int i = 0; i < 21; i++) {
+	mandrill = (HBITMAP)LoadImageA(NULL, "mandrill.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+	tiger = (HBITMAP)LoadImageA(NULL, "tiger.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+	for (int i = 0; i < 39; i++) {
+		//position
 		if (i < 8) {
 			boxes1[i].x = window.width / 8 * i;
 			boxes1[i].y = 50;
@@ -67,19 +56,15 @@ void InitGame() {
 			boxes1[i].x = window.width / 8 * (i - 8) + window.width / 16;
 			boxes1[i].y = 50 + window.height / 8;
 		}
-		else {
+		else if (i < 21) {
 			boxes1[i].x = window.width / 8 * (i - 14);
 			boxes1[i].y = 50 + window.height / 4;
 		}
-		boxes1[i].width = window.width / 8;
-		boxes1[i].height = window.height / 8;
-	}
-	for (int i = 0; i < 18; i++) {
-		if (i < 7) {
+		else if (i < 28) {
 			boxes2[i].x = window.width / 7 * i;
 			boxes2[i].y = ballSafe - window.height / 4;
 		}
-		else if (i < 13) {
+		else if (i < 33) {
 			boxes2[i].x = window.width / 7 * (i - 7) + window.width / 14;
 			boxes2[i].y = ballSafe - window.height / 8;
 		}
@@ -87,8 +72,15 @@ void InitGame() {
 			boxes2[i].x = window.width / 7 * (i - 12);
 			boxes2[i].y = ballSafe;
 		}
-		boxes2[i].width = window.width / 7;
-		boxes2[i].height = window.height / 8;
+		//size
+		if (i < 21) {
+			boxes1[i].width = window.width / 8;
+			boxes1[i].height = window.height / 8;
+		}
+		else {
+			boxes2[i].width = window.width / 7;
+			boxes2[i].height = window.height / 8;
+		}
 	}
 	hBack = (HBITMAP)LoadImageA(NULL, "jungle.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 }
@@ -169,39 +161,39 @@ void coll() {
 	}
 	if (level == 1) {
 		for (int i = 0; i < 21; i++) {
-			if (ball.x + ball.width + ball.speed >= boxes1[i].x && ball.y < boxes1[i].y + boxes1[i].height && ball.y + ball.height > boxes1[i].y && ball.x + ball.width <= boxes1[i].x + ball.speed * 2) {
-				ball.x = boxes1[i].x - ball.width - 1;
+			if (ball.x + ball.width + ball.speed >= boxes[i].x && ball.y < boxes[i].y + boxes[i].height && ball.y + ball.height > boxes[i].y && ball.x + ball.width <= boxes[i].x + ball.speed * 2) {
+				ball.x = boxes[i].x - ball.width - 1;
 				ball.dirx = -1;
 				score++;
-				past += ball.x + ball.width - boxes1[i].x - 1;
-				boxes1[i].x = boxes1[i].y = ballSafe;
+				past += ball.x + ball.width - boxes[i].x - 1;
+				boxes[i].x = boxes[i].y = ballSafe;
 				hita = true;
 				break;
 			}
-			if (ball.x - ball.speed <= boxes1[i].x + boxes1[i].width && ball.y < boxes1[i].y + boxes1[i].height && ball.y + ball.height > boxes1[i].y && ball.x >= boxes1[i].x + boxes1[i].width - ball.speed * 2) {
-				ball.x = boxes1[i].x + boxes1[i].width + 1;
+			if (ball.x - ball.speed <= boxes[i].x + boxes[i].width && ball.y < boxes[i].y + boxes[i].height && ball.y + ball.height > boxes[i].y && ball.x >= boxes[i].x + boxes[i].width - ball.speed * 2) {
+				ball.x = boxes[i].x + boxes[i].width + 1;
 				ball.dirx = 1;
 				score++;
-				past += ball.x - boxes1[i].x - boxes1[i].width + 1;
-				boxes1[i].x = boxes1[i].y = ballSafe;
+				past += ball.x - boxes[i].x - boxes[i].width + 1;
+				boxes[i].x = boxes[i].y = ballSafe;
 				hita = true;
 				break;
 			}
-			if (ball.y - ball.speed <= boxes1[i].y + boxes1[i].height && ball.x < boxes1[i].x + boxes1[i].width && ball.x + ball.width > boxes1[i].x && ball.y >= boxes1[i].y + boxes1[i].height - ball.speed * 2) {
-				ball.y = boxes1[i].y + boxes1[i].height + 1;
+			if (ball.y - ball.speed <= boxes[i].y + boxes[i].height && ball.x < boxes[i].x + boxes[i].width && ball.x + ball.width > boxes[i].x && ball.y >= boxes[i].y + boxes[i].height - ball.speed * 2) {
+				ball.y = boxes[i].y + boxes[i].height + 1;
 				ball.diry = 1;
 				score++;
-				past += ball.y - boxes1[i].y - boxes1[i].height + 1;
-				boxes1[i].x = boxes1[i].y = ballSafe;
+				past += ball.y - boxes[i].y - boxes[i].height + 1;
+				boxes[i].x = boxes[i].y = ballSafe;
 				hita = true;
 				break;
 			}
-			if (ball.y + ball.height + ball.speed >= boxes1[i].y && ball.x < boxes1[i].x + boxes1[i].width && ball.x + ball.width > boxes1[i].x && ball.y + ball.height <= boxes1[i].y + ball.speed * 2) {
-				ball.y = boxes1[i].y - ball.height - 1;
+			if (ball.y + ball.height + ball.speed >= boxes[i].y && ball.x < boxes[i].x + boxes[i].width && ball.x + ball.width > boxes[i].x && ball.y + ball.height <= boxes[i].y + ball.speed * 2) {
+				ball.y = boxes[i].y - ball.height - 1;
 				ball.diry = -1;
 				score++;
-				past += ball.y + ball.height - boxes1[i].y - 1;
-				boxes1[i].x = boxes1[i].y = ballSafe;
+				past += ball.y + ball.height - boxes[i].y - 1;
+				boxes[i].x = boxes[i].y = ballSafe;
 				hita = true;
 				break;
 			}
@@ -211,33 +203,33 @@ void coll() {
 		}
 	}
 	else if (level == 2) {
-		for (int i = 0; i < 18; i++) {
-			if (ball.x + ball.width >= boxes2[i].x && ball.y < boxes2[i].y + boxes2[i].height && ball.y + ball.height > boxes2[i].y && ball.x + ball.width <= boxes2[i].x + ball.speed + 5) {
-				ball.x = boxes2[i].x - 1 - ball.width;
+		for (int i = 21; i < 39; i++) {
+			if (ball.x + ball.width >= boxes[i].x && ball.y < boxes[i].y + boxes[i].height && ball.y + ball.height > boxes[i].y && ball.x + ball.width <= boxes[i].x + ball.speed + 5) {
+				ball.x = boxes[i].x - 1 - ball.width;
 				ball.dirx = -1;
 				score++;
-				boxes2[i].x = boxes2[i].y = ballSafe;
+				boxes[i].x = boxes[i].y = ballSafe;
 				break;
 			}
-			if (ball.x <= boxes2[i].x + boxes2[i].width && ball.y < boxes2[i].y + boxes2[i].height && ball.y + ball.height > boxes2[i].y && ball.x >= boxes2[i].x + boxes2[i].width - ball.speed - 5) {
-				ball.x = boxes2[i].x + boxes2[i].width + 1;
+			if (ball.x <= boxes[i].x + boxes[i].width && ball.y < boxes[i].y + boxes[i].height && ball.y + ball.height > boxes[i].y && ball.x >= boxes[i].x + boxes[i].width - ball.speed - 5) {
+				ball.x = boxes[i].x + boxes[i].width + 1;
 				ball.dirx = 1;
 				score++;
-				boxes2[i].x = boxes2[i].y = ballSafe;
+				boxes[i].x = boxes[i].y = ballSafe;
 				break;
 			}
-			if (ball.y <= boxes2[i].y + boxes2[i].height && ball.x < boxes2[i].x + boxes2[i].width && ball.x + ball.width > boxes2[i].x && ball.y >= boxes2[i].y + boxes2[i].height - ball.speed - 5) {
-				ball.y = boxes2[i].y + boxes2[i].height + 1;
+			if (ball.y <= boxes[i].y + boxes[i].height && ball.x < boxes[i].x + boxes[i].width && ball.x + ball.width > boxes[i].x && ball.y >= boxes[i].y + boxes[i].height - ball.speed - 5) {
+				ball.y = boxes[i].y + boxes[i].height + 1;
 				ball.diry = 1;
 				score++;
-				boxes2[i].x = boxes2[i].y = ballSafe;
+				boxes[i].x = boxes[i].y = ballSafe;
 				break;
 			}
-			if (ball.y + ball.height >= boxes2[i].y && ball.x < boxes2[i].x + boxes2[i].width && ball.x + ball.width > boxes2[i].x && ball.y + ball.height <= boxes2[i].y + ball.speed + 5) {
-				ball.y = boxes2[i].y - 1 - ball.height;
+			if (ball.y + ball.height >= boxes[i].y && ball.x < boxes[i].x + boxes[i].width && ball.x + ball.width > boxes[i].x && ball.y + ball.height <= boxes[i].y + ball.speed + 5) {
+				ball.y = boxes[i].y - 1 - ball.height;
 				ball.diry = -1;
 				score++;
-				boxes2[i].x = boxes2[i].y = ballSafe;
+				boxes[i].x = boxes[i].y = ballSafe;
 				break;
 			}
 		}
@@ -279,7 +271,7 @@ void tutorial() {
 void newLevel() {
 	int hit = 0;
 	for (int i = 0; i < 21; i++) {
-		if (boxes1[i].x == ballSafe) {
+		if (boxes[i].x == ballSafe) {
 			hit++;
 		}
 	}
@@ -287,8 +279,8 @@ void newLevel() {
 		level = 2;
 		ball.x = window.width / 2 - 50;
 		ball.y = window.height - 130;
-		for (int i = 0; i < 18; i++) {
-			boxes2[i].y += 250 + window.height / 4;
+		for (int i = 21; i < 39; i++) {
+			boxes[i].y += 250 + window.height / 4;
 		}
 		tutorial();
 	}
@@ -305,8 +297,8 @@ void die() {
 void trace() {
 	if (ball.diry == -1) {
 		for (int i = 0; i < 21; i++) {
-			if (ball.y - boxes1[i].y + boxes1[i].height <= ball.speed && ball.x < boxes1[i].x + boxes1[i].width && ball.x + ball.width > boxes1[i].x) {
-				
+			if (ball.y - boxes[i].y + boxes[i].height <= ball.speed && ball.x < boxes[i].x + boxes[i].width && ball.x + ball.width > boxes[i].x) {
+
 			}
 		}
 	}
@@ -326,11 +318,11 @@ void ShowImage() {
 	ShowBitmap(window.context, racket.x, racket.y, racket.width, racket.height, racket.hBitmap);
 	ShowBitmap(window.context, ball.x, ball.y, ball.width, ball.height, ball.hBitmap);
 	for (int i = 0; i < 21; i++) {
-		ShowBitmap(window.context, boxes1[i].x, boxes1[i].y, window.width / 8, window.height / 8, boxes1[i].hBitmap);
+		ShowBitmap(window.context, boxes[i].x, boxes[i].y, window.width / 8, window.height / 8, mandrill);
 	}
 	if (level == 2) {
-		for (int i = 0; i < 18; i++) {
-			ShowBitmap(window.context, boxes2[i].x, boxes2[i].y, window.width / 7, window.height / 8, boxes2[i].hBitmap);
+		for (int i = 21; i < 39; i++) {
+			ShowBitmap(window.context, boxes[i].x, boxes[i].y, window.width / 7, window.height / 8, tiger);
 		}
 	}
 }
@@ -363,7 +355,26 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			rayy = ball.y;
 		}
 		while (rayx < window.width && rayx > 0 && rayy < window.height && rayy > 0) {
+			bool hitd = false;
 			ShowBitmap(window.context, rayx, rayy, 4, 4, ball.hBitmap);
+			for (int i = 0; i < 21; i++) {
+				if (level == 2) {
+					i += 21;
+				}
+				if (ball.y >= boxes[i].y + boxes[i].height && rayy <= boxes[i].y + boxes[i].height && boxes[i].x <= rayx && boxes[i].x + boxes[i].width >= rayx) {
+					hitd = true;
+				}
+				if (ball.y <= boxes[i].y && rayy >= boxes[i].y && boxes[i].x <= rayx && boxes[i].x + boxes[i].width >= rayx) {
+					hitd = true;
+					break;
+				}
+				if (level == 2) {
+					i -= 21;
+				}
+			}
+			if (hitd == true) {
+				break;
+			}
 			rayx = rayx + 4 * ball.dirx;
 			rayy = rayy + 4 * ball.diry;
 		}
@@ -385,6 +396,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			//break;
 		}
 		BitBlt(window.device_context, 0, 0, window.width, window.height, window.context, 0, 0, SRCCOPY);
-		Sleep(16);
+		Sleep(100);
 	}
 }
