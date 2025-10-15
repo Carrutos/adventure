@@ -25,10 +25,16 @@ int lives = 3;
 int score = 0;
 int level = 1;
 int ballSafe = -200;
+int boxes21 = 21;
 int past = 0;
 int rayx, rayy, hitx, hity, hitd;
 bool diry;
 HBITMAP hBack, mandrill, tiger;
+
+HBITMAP loadImage(const char* name)
+{
+	return (HBITMAP)LoadImageA(NULL, name, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+}
 
 void InitGame() {
 	racket.x = window.width / 2 - 75;
@@ -42,47 +48,46 @@ void InitGame() {
 	ball.speed = 8;
 	ball.dirx = ball.diry = 0;
 	diry = false;
-	racket.hBitmap = (HBITMAP)LoadImageA(NULL, "racket.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-	ball.hBitmap = (HBITMAP)LoadImageA(NULL, "ball.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-	mandrill = (HBITMAP)LoadImageA(NULL, "mandrill.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-	tiger = (HBITMAP)LoadImageA(NULL, "tiger.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+	
+	racket.hBitmap = loadImage("racket.bmp");
+	ball.hBitmap = loadImage("ball.bmp");
+	mandrill = loadImage("mandrill.bmp");
+	tiger = loadImage("tiger.bmp");
+	hBack = loadImage("jungle.bmp");
+
+	int boxToTop = window.height / 20;
+	int boxLen = 8;
+	int offset = 0;
+	int rowlengths[6] = { 0, 8, 15, 21, 28, 34 };
 	for (int i = 0; i < 39; i++) {
-		//position
-		if (i < 8) {
-			boxes[i].x = window.width / 8 * i;
-			boxes[i].y = 50;
-		}
-		else if (i < 15) {
-			boxes[i].x = window.width / 8 * (i - 8) + window.width / 16;
-			boxes[i].y = 50 + window.height / 8;
-		}
-		else if (i < 21) {
-			boxes[i].x = window.width / 8 * (i - 14);
-			boxes[i].y = 50 + window.height / 4;
-		}
-		else if (i < 28) {
-			boxes[i].x = window.width / 7 * (i - 21);
-			boxes[i].y = ballSafe - window.height / 4;
-		}
-		else if (i < 34) {
-			boxes[i].x = window.width / 7 * (i - 28) + window.width / 14;
-			boxes[i].y = ballSafe - window.height / 8;
-		}
-		else {
-			boxes[i].x = window.width / 7 * (i - 33);
-			boxes[i].y = ballSafe;
-		}
 		//size
-		if (i < 21) {
+		if (i < boxes21) {
 			boxes[i].width = window.width / 8;
-			boxes[i].height = window.height / 8;
 		}
 		else {
 			boxes[i].width = window.width / 7;
-			boxes[i].height = window.height / 8;
 		}
+		boxes[i].height = window.height / 8;
 	}
-	hBack = (HBITMAP)LoadImageA(NULL, "jungle.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+	for (int y = 0; y < 6; y++)
+		//position
+	{
+		if (y == 3) {
+			boxLen += 2;
+		}
+		for (int x = 0; x < boxLen; x++)
+		{
+			boxes[rowlengths[y] + x].x = offset + boxes[rowlengths[y] + x].width * x;
+			if (y < 3) {
+				boxes[rowlengths[y] + x].y = boxToTop + boxes[rowlengths[y] + x].height * y;
+			}
+			else {
+				boxes[rowlengths[y] + x].y = ballSafe - boxes[rowlengths[y] + x].height * (5 - y);
+			}
+		}
+		boxLen--;
+		offset += boxes[y].width / 2;
+	}
 }
 
 void setText() {
@@ -131,12 +136,7 @@ void ballMove() {
 	else if (past > ball.speed) {
 		move = ball.speed - (past - ball.speed);
 	}
-	if (ball.dirx == 1) {
-		ball.x += move;
-	}
-	else if (ball.dirx == -1) {
-		ball.x -= move;
-	}
+	ball.x += move * ball.dirx;
 	if (diry == true) {
 		ball.y += move;
 	}
@@ -146,6 +146,7 @@ void ballMove() {
 }
 
 void collWall() {
+	// unused function, stored just in case
 	if (ball.x - ball.speed <= 0) {
 		ball.x = 1;
 		ball.dirx = 1;
@@ -161,11 +162,13 @@ void collWall() {
 }
 
 void collBox() {
+	// unused function, stored just in case
 	bool hita = false;
-	for (int i = 0; i < 21; i++) {
+	for (int i = 0; i < boxes21; i++) {
 		if (level == 2) {
 			i += 21;
 		}
+
 		if (ball.x + ball.width + ball.speed >= boxes[i].x && ball.y < boxes[i].y + boxes[i].height && ball.y + ball.height > boxes[i].y && ball.x + ball.width <= boxes[i].x + ball.speed * 2) {
 			past += ball.x + ball.width - boxes[i].x - 1;
 			ball.x = boxes[i].x - ball.width - 1;
@@ -255,7 +258,7 @@ void newLevel() {
 			hit++;
 		}
 	}
-	if (hit == 5) {
+	if (hit == 21) {
 		level = 2;
 		ball.x = window.width / 2 - 50;
 		ball.y = window.height - 130;
@@ -268,7 +271,7 @@ void newLevel() {
 
 void die() {
 	if (ball.y + 8 >= window.height - ball.height) {
-		lives -= 1;
+		lives --;
 		diry = false;
 		tutorial();
 	}
@@ -316,6 +319,7 @@ void racketMove() {
 		racket.x += racket.speed;
 	}
 }
+
 void ShowImage() {
 
 	ShowBitmap(window.context, 0, 0, window.width, window.height, hBack);
@@ -397,11 +401,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	ShowCursor(NULL);
 	tutorial();
 	while (not(GetAsyncKeyState(VK_ESCAPE))) {
+
 		ShowImage();
+
 		A = "score: " + std::to_string((int)score);
 		B = "lives: " + std::to_string((int)lives);
 		TextOutA(window.context, 10, window.height - 100, A.c_str(), 9);
 		TextOutA(window.context, 10, window.height - 50, B.c_str(), 8);
+
 		while (past < ball.speed) {
 			//collWall();
 			//collBox();
@@ -409,16 +416,21 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			collRacket();
 			rayConstr();
 		}
+
 		ballMove();
+
 		past = 0;
 		if (level == 1) {
 			newLevel();
 		}
+
 		racketMove();
 		die();
+
 		if (lives == 0) {
 			//break;
 		}
+
 		BitBlt(window.device_context, 0, 0, window.width, window.height, window.context, 0, 0, SRCCOPY);
 		Sleep(16);
 	}
