@@ -21,13 +21,13 @@ struct box {
 
 obj racket, ball;
 box boxes[39]{};
-int lives = 3;
+float lives = 3;
 int score = 0;
 int level = 1;
-int ballSafe = -200;
-int boxes21 = 21;
+int ballHit = -200;
+int boxesInL1 = 21;
 int past = 0;
-int rayx, rayy, hitx, hity, hitd;
+int rayx, rayy, hitx, hity, hitd, trigger1x, trigger1y, trigger2x, trigger2y;
 bool diry;
 HBITMAP hBack, mandrill, tiger;
 
@@ -48,7 +48,7 @@ void InitGame() {
 	ball.speed = 8;
 	ball.dirx = ball.diry = 0;
 	diry = false;
-	
+
 	racket.hBitmap = loadImage("racket.bmp");
 	ball.hBitmap = loadImage("ball.bmp");
 	mandrill = loadImage("mandrill.bmp");
@@ -61,12 +61,7 @@ void InitGame() {
 	int rowlengths[6] = { 0, 8, 15, 21, 28, 34 };
 	for (int i = 0; i < 39; i++) {
 		//size
-		if (i < boxes21) {
-			boxes[i].width = window.width / 8;
-		}
-		else {
-			boxes[i].width = window.width / 7;
-		}
+		boxes[i].width = window.width / (8 - i / boxesInL1);
 		boxes[i].height = window.height / 8;
 	}
 	for (int y = 0; y < 6; y++)
@@ -75,14 +70,13 @@ void InitGame() {
 		if (y == 3) {
 			boxLen += 2;
 		}
-		for (int x = 0; x < boxLen; x++)
-		{
+		for (int x = 0; x < boxLen; x++) {
 			boxes[rowlengths[y] + x].x = offset + boxes[rowlengths[y] + x].width * x;
 			if (y < 3) {
 				boxes[rowlengths[y] + x].y = boxToTop + boxes[rowlengths[y] + x].height * y;
 			}
 			else {
-				boxes[rowlengths[y] + x].y = ballSafe - boxes[rowlengths[y] + x].height * (5 - y);
+				boxes[rowlengths[y] + x].y = ballHit - boxes[rowlengths[y] + x].height * (5 - y);
 			}
 		}
 		boxLen--;
@@ -130,30 +124,16 @@ void ShowBitmap(HDC hDC, int x, int y, int x1, int y1, HBITMAP hBitmapBall, bool
 
 void ballMove() {
 	int move = 0;
-	if (past == ball.speed * 2) {
-		move = ball.speed;
-	}
-	else if (past > ball.speed) {
-		move = ball.speed - (past - ball.speed);
-	}
+	move = ball.speed - (past - ball.speed) * (past != ball.speed * 2);
 	ball.x += move * ball.dirx;
-	if (diry == true) {
-		ball.y += move;
-	}
-	else if (diry == false) {
-		ball.y -= move;
-	}
+	ball.y += move * (diry * 2 - 1);
 }
 
 void collWall() {
 	// unused function, stored just in case
-	if (ball.x - ball.speed <= 0) {
-		ball.x = 1;
-		ball.dirx = 1;
-	}
-	if (ball.x + ball.width + ball.speed >= window.width) {
-		ball.x = window.width - ball.width - 1;
-		ball.dirx = -1;
+	if (ball.x - ball.speed <= 0 || ball.x + ball.width + ball.speed >= window.width) {
+		ball.x += min(ball.x, window.height - ball.x) * ball.dirx;
+		ball.dirx *= -1;
 	}
 	if (ball.y - ball.speed <= 0) {
 		ball.y = 1;
@@ -164,7 +144,7 @@ void collWall() {
 void collBox() {
 	// unused function, stored just in case
 	bool hita = false;
-	for (int i = 0; i < boxes21; i++) {
+	for (int i = 0; i < boxesInL1; i++) {
 		if (level == 2) {
 			i += 21;
 		}
@@ -173,36 +153,29 @@ void collBox() {
 			past += ball.x + ball.width - boxes[i].x - 1;
 			ball.x = boxes[i].x - ball.width - 1;
 			ball.dirx = -1;
-			score++;
-			boxes[i].x = boxes[i].y = ballSafe;
 			hita = true;
-			break;
 		}
 		if (ball.x - ball.speed <= boxes[i].x + boxes[i].width && ball.y < boxes[i].y + boxes[i].height && ball.y + ball.height > boxes[i].y && ball.x >= boxes[i].x + boxes[i].width - ball.speed * 2) {
 			past += ball.x - boxes[i].x - boxes[i].width + 1;
 			ball.x = boxes[i].x + boxes[i].width + 1;
 			ball.dirx = 1;
-			score++;
-			boxes[i].x = boxes[i].y = ballSafe;
 			hita = true;
-			break;
 		}
 		if (ball.y - ball.speed <= boxes[i].y + boxes[i].height && ball.x < boxes[i].x + boxes[i].width && ball.x + ball.width > boxes[i].x && ball.y >= boxes[i].y + boxes[i].height - ball.speed * 2) {
 			past += ball.y - boxes[i].y - boxes[i].height + 1;
 			ball.y = boxes[i].y + boxes[i].height + 1;
 			ball.diry = 1;
-			score++;
-			boxes[i].x = boxes[i].y = ballSafe;
 			hita = true;
-			break;
 		}
 		if (ball.y + ball.height + ball.speed >= boxes[i].y && ball.x < boxes[i].x + boxes[i].width && ball.x + ball.width > boxes[i].x && ball.y + ball.height <= boxes[i].y + ball.speed * 2) {
 			past += ball.y + ball.height - boxes[i].y - 1;
 			ball.y = boxes[i].y - ball.height - 1;
 			ball.diry = -1;
-			score++;
-			boxes[i].x = boxes[i].y = ballSafe;
 			hita = true;
+		}
+		if (hita == true) {
+			score++;
+			boxes[i].x = boxes[i].y = ballHit;
 			break;
 		}
 		if (level == 2) {
@@ -230,9 +203,9 @@ void collRacket() {
 }
 
 void tutorial() {
+	ball.x = racket.x + 25;
+	ball.y = window.height - 130;
 	while (true) {
-		ball.x = racket.x + 25;
-		ball.y = window.height - 130;
 		ShowBitmap(window.context, 0, 0, window.width, window.height, hBack);
 		ShowBitmap(window.context, racket.x, racket.y, racket.width, racket.height, racket.hBitmap);
 		ShowBitmap(window.context, ball.x, ball.y, ball.width, ball.height, ball.hBitmap);
@@ -247,22 +220,22 @@ void tutorial() {
 			break;
 		}
 		BitBlt(window.device_context, 0, 0, window.width, window.height, window.context, 0, 0, SRCCOPY);
-		Sleep(16);
+		Sleep(100);
 	}
 }
 
 void newLevel() {
 	int hit = 0;
-	for (int i = 0; i < 21; i++) {
-		if (boxes[i].x == ballSafe) {
+	for (int i = 0; i < boxesInL1; i++) {
+		if (boxes[i].x == ballHit) {
 			hit++;
 		}
 	}
-	if (hit == 21) {
+	if (hit == boxesInL1) {
 		level = 2;
 		ball.x = window.width / 2 - 50;
 		ball.y = window.height - 130;
-		for (int i = 21; i < 39; i++) {
+		for (int i = boxesInL1; i < 39; i++) {
 			boxes[i].y += 250 + window.height / 4;
 		}
 		tutorial();
@@ -271,9 +244,18 @@ void newLevel() {
 
 void die() {
 	if (ball.y + 8 >= window.height - ball.height) {
-		lives --;
+		lives -= 0.5;
 		diry = false;
 		tutorial();
+	}
+	int hit = 0;
+	for (int i = 0; i < 39; i++) {
+		if (boxes[i].x == ballHit) {
+			hit++;
+		}
+	}
+	if (hit == 39) {
+		lives -= 3;
 	}
 }
 
@@ -281,33 +263,24 @@ void trace() {
 	bool hita = false;
 	if (ball.y - ball.speed <= hity && diry == false || ball.y + ball.height + ball.speed >= hity && diry == true) {
 		hita = true;
-		if (diry == false) {
-			past += ball.y - hity;
-			ball.x += (ball.y - hity) * ball.dirx;
-			ball.y = hity;
-		}
-		else {
-			past += hity - ball.y - ball.height;
-			ball.x += (hity - ball.y - ball.height) * ball.dirx;
-			ball.y = hity - ball.height;
-		}
-		if (hitd != -1) {
-			boxes[hitd].x = boxes[hitd].y = ballSafe;
-			score++;
-		}
+		int paststep = (ball.y - hity) * (not(diry) * 2 - 1) - ball.height * diry;
+		past += paststep;
+		ball.x += paststep * ball.dirx;
+		ball.y = hity - ball.height * diry;
 		if (hitx <= 4 || hitx >= window.width - 4 || hitd != -1 && boxes[hitd].y + ball.speed < hity && boxes[hitd].y + boxes[hitd].height - ball.speed > hity) {
 			ball.dirx = -ball.dirx;
 		}
-		if (hitd != -1 && (boxes[hitd].y + ball.speed >= hity || boxes[hitd].y + boxes[hitd].height - ball.speed <= hity) || hity <= 4) {
+		else if (hitd != -1 && (boxes[hitd].y + ball.speed >= hity || boxes[hitd].y + boxes[hitd].height - ball.speed <= hity) || hity <= 4) {
 			diry = not(diry);
+		}
+		if (hitd != -1) {
+			boxes[hitd].x = boxes[hitd].y = ballHit;
+			score++;
 		}
 		hitd = -1;
 	}
-	if (hita == false && past == 0) {
-		past = ball.speed * 2;
-	}
-	else if (hita == false) {
-		past += ball.speed;
+	if (hita == false) {
+		past += ball.speed + ball.speed * (past == 0);
 	}
 }
 
@@ -335,28 +308,42 @@ void ShowImage() {
 	}
 }
 
+void triggerPoints() {
+	trigger1x = ball.x + ball.width * (ball.dirx == -1);
+	trigger2x = ball.x + ball.width * (ball.dirx == 1);
+	trigger1y = ball.y + ball.height * diry;
+	trigger2y = ball.y + ball.height * not(diry);
+	for (int i = 0; i < boxesInL1; i++) {
+		if (trigger1x + ball.speed >= boxes[i].x && trigger1x - ball.speed <= boxes[i].x + boxes[i].width && trigger1y + ball.speed >= boxes[i].y && trigger1y - ball.speed <= boxes[i].y + boxes[i].height) {
+			hitd = i;
+			hity = trigger1y;
+			hitx = trigger1x;
+			trace();
+		}
+		if (trigger2x + ball.speed >= boxes[i].x && trigger2x - ball.speed <= boxes[i].x + boxes[i].width && trigger2y + ball.speed >= boxes[i].y && trigger2y - ball.speed <= boxes[i].y + boxes[i].height) {
+			hitd = i;
+			hity = trigger2y;
+			hitx = trigger2x;
+			trace();
+		}
+	}
+}
+
 void rayConstr() {
-	if (ball.dirx == 1) {
-		rayx = ball.x + ball.width;
-	}
-	else if (ball.dirx == -1) {
-		rayx = ball.x;
-	}
-	if (diry == true) {
-		rayy = ball.y + ball.height;
-	}
-	else if (diry == false) {
-		rayy = ball.y;
-	}
+	rayx = ball.x + ball.width * (ball.dirx == 1);
+	rayy = ball.y + ball.height * diry;
 	while (rayx < window.width && rayx > 0 && rayy < window.height && rayy > 0) {
 		ShowBitmap(window.context, rayx, rayy, 6, 6, ball.hBitmap);
 		bool hita = false;
-		for (int i = 0; i < 21; i++) {
-			if (level == 2) {
-				i += 21;
-			}
+		for (int i = 0; i < boxesInL1; i++) {
+			i += 21 * (1 / (3 - level));
 			if (rayy >= boxes[i].y && rayy <= boxes[i].y + boxes[i].height && rayx >= boxes[i].x && rayx <= boxes[i].x + boxes[i].width) {
-				hitd = i;
+				if (i < 39 && boxes[i].y == boxes[i - ball.dirx].y && (rayx - boxes[i].x) * ball.dirx + boxes[i].width * (ball.dirx == -1) < ball.width / 2) {
+					hitd = i - ball.dirx;
+				}
+				else {
+					hitd = i;
+				}
 				hity = rayy;
 				hitx = rayx + ball.width / 2 * ball.dirx;
 				hita = true;
@@ -364,9 +351,7 @@ void rayConstr() {
 					break;
 				}
 			}
-			if (level == 2) {
-				i -= 21;
-			}
+			i += boxesInL1 * (1 / (3 - level));
 			if (level == 2 && i == 17) {
 				break;
 			}
@@ -379,12 +364,7 @@ void rayConstr() {
 			hitx = rayx;
 		}
 		rayx = rayx + 4 * ball.dirx;
-		if (diry == true) {
-			rayy += 4;
-		}
-		else {
-			rayy -= 4;
-		}
+		rayy += 4 * (diry * 2 - 1);
 	}
 }
 
@@ -414,12 +394,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			//collBox();
 			trace();
 			collRacket();
+			//triggerPoints();
 			rayConstr();
 		}
-
 		ballMove();
-
 		past = 0;
+
 		if (level == 1) {
 			newLevel();
 		}
