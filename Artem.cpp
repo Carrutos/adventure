@@ -21,8 +21,9 @@ struct box {
 };
 
 obj racket, ball;
+const int dotsHsphere = 19;
 box boxes[39]{};
-box dots[19]{};
+box dots[dotsHsphere]{};
 float lives = 3;
 int score = 0;
 int level = 1;
@@ -38,7 +39,41 @@ HBITMAP loadImage(const char* name)
 	return (HBITMAP)LoadImageA(NULL, name, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 }
 
+
+struct sprite {
+	float x;
+	float y;
+	HBITMAP img;
+
+};
+
+struct ball2 {
+	
+	sprite spr;
+
+	void show()
+	{
+	
+	}
+
+	void load()
+	{
+
+	}
+
+	void move()
+	{
+	}
+};
+
+
+
 void InitGame() {
+
+	ball2 ballA;
+	ballA.spr.x
+
+
 	racket.x = window.width / 2 - 75;
 	racket.y = window.height - 30;
 	racket.width = 150;
@@ -66,6 +101,21 @@ void InitGame() {
 		boxes[i].width = window.width / (8 - i / boxesInL1);
 		boxes[i].height = window.height / 8;
 	}
+
+	
+	box boxes_level0[123][123];
+	box boxes_level1[123][123];
+	box* box_ptrs[] = {&boxes_level0[0][0] ,&boxes_level1[0][0] };
+
+	box* box_ptr = NULL;
+
+	box_ptr = box_ptrs[level];
+	
+
+
+
+
+
 	for (int y = 0; y < 6; y++)
 		//position
 	{
@@ -74,6 +124,7 @@ void InitGame() {
 		}
 		for (int x = 0; x < boxLen; x++) {
 			boxes[rowlengths[y] + x].x = offset + boxes[rowlengths[y] + x].width * x;
+
 			if (y < 3) {
 				boxes[rowlengths[y] + x].y = boxToTop + boxes[rowlengths[y] + x].height * y;
 			}
@@ -209,7 +260,7 @@ void tutorial() {
 	ball.y = window.height - 130;
 	diry = false;
 	while (true) {
-		ShowBitmap(window.context, 0, 0, window.width, window.height, hBack);
+		//ShowBitmap(window.context, 0, 0, window.width, window.height, hBack);
 		ShowBitmap(window.context, racket.x, racket.y, racket.width, racket.height, racket.hBitmap);
 		ShowBitmap(window.context, ball.x, ball.y, ball.width, ball.height, ball.hBitmap);
 		TextOutA(window.context, window.width / 2 - 100, window.height / 2, "Rumble in the Jungle", 20);
@@ -264,9 +315,9 @@ void die() {
 
 void collBoxes() {
 	bool hita = false;
-	for (int i = 0; i < 21; i++) {
-		i += 21 * (1 / (3 - level));
-		for (int j = 0; j < 19; j++) {
+	for (int i = 0; i < boxesInL1; i++) {
+		i += boxesInL1 * (1 / (3 - level));
+		for (int j = 0; j < dotsHsphere; j++) {
 			if (dots[j].x + ball.speed >= boxes[i].x &&
 				dots[j].x - ball.speed <= boxes[i].x + boxes[i].width &&
 				dots[j].y + ball.speed >= boxes[i].y &&
@@ -277,7 +328,7 @@ void collBoxes() {
 					paststep = ball.speed - abs(boxes[i].x + boxes[i].width * (ball.dirx == -1) - dots[j].x);
 				}
 				else {
-					paststep = ball.speed - abs(boxes[i].y + boxes[i].height * not(diry) - dots[j].y);
+					paststep = ball.speed - abs(boxes[i].y + boxes[i].height * not(diry)-dots[j].y);
 				}
 				past += paststep;
 				ball.x += paststep * ball.dirx;
@@ -293,7 +344,7 @@ void collBoxes() {
 				break;
 			}
 		}
-		i -= 21 * (1 / (3 - level));
+		i -= boxesInL1 * (1 / (3 - level));
 	}
 	if (hita == false) {
 		ball.x += (ball.speed - past) * ball.dirx;
@@ -324,31 +375,31 @@ void collBoxes() {
 }
 
 void collWalls() {
-		for (int j = 0; j < 19; j++) {
-			if (dots[j].x + ball.speed >= window.width &&
-				dots[j].x - ball.speed <= 0 &&
-				dots[j].y + ball.speed >= window.height &&
-				dots[j].y - ball.speed <= 0) {
-				int paststep = 0;
-				if (j < 9) {
-					paststep = ball.speed - abs(dots[j].x - window.width * (ball.dirx == 1));
-				}
-				else {
-					paststep = ball.speed - abs(dots[j].y - window.height * (diry == true));
-				}
-				past += paststep;
-				ball.x += paststep * ball.dirx;
-				ball.y += paststep * (2 * diry - 1);
-				if (j < 9) {
-					ball.dirx = -ball.dirx;
-				}
-				else {
-					diry = not(diry);
-				}
-				break;
+	for (int j = 0; j < dotsHsphere; j++) {
+		if (dots[j].x + ball.speed >= window.width ||
+			dots[j].x - ball.speed <= 0 ||
+			dots[j].y + ball.speed >= window.height ||
+			dots[j].y - ball.speed <= 0) {
+			int paststep = 0;
+			if (j < 9) {
+				paststep = ball.speed - abs(dots[j].x - window.width * (ball.dirx == 1));
 			}
+			else {
+				paststep = ball.speed - abs(dots[j].y - window.height * (diry == true));
+			}
+			past += paststep;
+			ball.x += paststep * ball.dirx;
+			ball.y += paststep * (2 * diry - 1);
+			if (j < 9) {
+				ball.dirx = -ball.dirx;
+			}
+			else {
+				diry = not(diry);
+			}
+			break;
 		}
 	}
+}
 
 void racketMove() {
 	if (GetAsyncKeyState('A') && racket.x > 0) {
@@ -441,17 +492,89 @@ void sphere() {
 	float poluhorda = sqrt(pow(ball.width / 2, 2) / 2);
 	dots[0].y = ball.y + ball.height / 2 - poluhorda * (2 * diry - 1);
 	dots[0].x = ball.x + ball.width / 2 + poluhorda * ball.dirx;
-	for (int i = 1; i < 10; i++) {
+
+	float vecAngleRad = atan2(2 * diry - 1, ball.dirx);
+	float d90 = 90.f * 3.141519f / 180.f;
+	int i = 0;
+	bool hita = false;
+	for (float angle = vecAngleRad - d90; angle <= vecAngleRad + d90; angle += d90 * 2.f / 10.f)
+	{
+		float x = ball.x - sin(angle) * ball.width / 2 + ball.width / 2 + ball.speed * ball.dirx;
+		float y = ball.y - cos(angle) * ball.height / 2 +ball.height / 2 + ball.speed * (2 * diry - 1);
+		SetPixel(window.context, x, y, RGB(0, 0, 255));
+		i++;
+
+		for (int i = 0; i < boxesInL1; i++) {
+			i += boxesInL1 * (1 / (3 - level));
+				if (x + ball.speed >= boxes[i].x &&
+					x - ball.speed <= boxes[i].x + boxes[i].width &&
+					y + ball.speed >= boxes[i].y &&
+					y - ball.speed <= boxes[i].y + boxes[i].height) {
+					hita = true;
+					int paststep = 0;
+					if (angle < vecAngleRad) {
+						paststep = ball.speed - abs(boxes[i].x + boxes[i].width * (ball.dirx == -1) - x);
+					}
+					else {
+						paststep = ball.speed - abs(boxes[i].y + boxes[i].height * not(diry)-y);
+					}
+					past += paststep;
+					ball.x += paststep * ball.dirx;
+					ball.y += paststep * (2 * diry - 1);
+					if (angle < vecAngleRad) {
+						ball.dirx = -ball.dirx;
+					}
+					else {
+						diry = not(diry);
+					}
+					boxes[i].x = boxes[i].y = -200;
+					score++;
+					break;
+				}
+			i -= boxesInL1 * (1 / (3 - level));
+		}
+
+			if (x + ball.speed >= window.width ||
+				x - ball.speed <= 0 ||
+				y + ball.speed >= window.height ||
+				y - ball.speed <= 0) {
+				int paststep = 0;
+				hita = true;
+				if (angle < vecAngleRad) {
+					paststep = ball.speed - abs(x - window.width * (ball.dirx == 1));
+				}
+				else {
+					paststep = ball.speed - abs(y - window.height * (diry == true));
+				}
+				past += paststep;
+				ball.x += paststep * ball.dirx;
+				ball.y += paststep * (2 * diry - 1);
+				if (angle < vecAngleRad) {
+					ball.dirx = -ball.dirx;
+				}
+				else {
+					diry = not(diry);
+				}
+				break;
+			}
+	}
+	if (hita == false) {
+		ball.x += (ball.speed - past) * ball.dirx;
+		ball.y += (ball.speed - past) * (2 * diry - 1);
+		past = ball.speed;
+	}
+	/*for (int i = 1; i < 10; i++) {
 		dots[i].y = dots[i - 1].y + poluhorda / 5 * (2 * diry - 1) + ball.speed * (2 * diry - 1);
 		dots[i].x = ball.x + ball.width / 2 + sqrt(pow(ball.width / 2, 2) - pow(abs(ball.y + ball.height / 2 - dots[i].y), 2)) * ball.dirx + ball.speed * ball.dirx;
 	}
-	for (int i = 10; i < 19; i++) {
+	for (int i = 10; i < dotsHsphere; i++) {
 		dots[i].x = dots[i - 1].x - poluhorda / 5 * ball.dirx + ball.speed * ball.dirx;
 		dots[i].y = ball.y + ball.height / 2 + sqrt(pow(ball.height / 2, 2) - pow(abs(ball.x + ball.width / 2 - dots[i].x), 2)) * (2 * diry - 1) + ball.speed * (2 * diry - 1);
 	}
-	for (int i = 0; i < 19; i++) {
+	for (int i = 0; i < dotsHsphere; i++) {
 		ShowBitmap(window.context, dots[i].x, dots[i].y, 6, 6, ball.hBitmap);
 	}
+	*/
 }
 
 std::string A;
@@ -466,7 +589,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	setText();
 	ShowCursor(NULL);
 	tutorial();
-	while (not(GetAsyncKeyState(VK_ESCAPE))) {
+	while (!(GetAsyncKeyState(VK_ESCAPE))) {
 
 		ShowImage();
 
@@ -479,8 +602,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			//collWall();
 			//collBox();
 			sphere();
-			collBoxes();
-			collWalls();
+			//collBoxes();
+			//collWalls();
 			collRacket();
 			//triggerPoints();
 			//rayConstr();
