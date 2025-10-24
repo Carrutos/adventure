@@ -1,5 +1,6 @@
 #include <windows.h>
 #include <string>
+#include <math.h>
 
 struct {
 	HWND hWnd;
@@ -21,6 +22,7 @@ struct box {
 
 obj racket, ball;
 box boxes[39]{};
+box dots[19]{};
 float lives = 3;
 int score = 0;
 int level = 1;
@@ -205,6 +207,7 @@ void collRacket() {
 void tutorial() {
 	ball.x = racket.x + 25;
 	ball.y = window.height - 130;
+	diry = false;
 	while (true) {
 		ShowBitmap(window.context, 0, 0, window.width, window.height, hBack);
 		ShowBitmap(window.context, racket.x, racket.y, racket.width, racket.height, racket.hBitmap);
@@ -259,9 +262,45 @@ void die() {
 	}
 }
 
-void trace() {
+void collBoxes() {
 	bool hita = false;
-	if (ball.y - ball.speed <= hity && diry == false || ball.y + ball.height + ball.speed >= hity && diry == true) {
+	for (int i = 0; i < 21; i++) {
+		i += 21 * (1 / (3 - level));
+		for (int j = 0; j < 19; j++) {
+			if (dots[j].x + ball.speed >= boxes[i].x &&
+				dots[j].x - ball.speed <= boxes[i].x + boxes[i].width &&
+				dots[j].y + ball.speed >= boxes[i].y &&
+				dots[j].y - ball.speed <= boxes[i].y + boxes[i].height) {
+				hita = true;
+				int paststep = 0;
+				if (j < 9) {
+					paststep = ball.speed - abs(boxes[i].x + boxes[i].width * (ball.dirx == -1) - dots[j].x);
+				}
+				else {
+					paststep = ball.speed - abs(boxes[i].y + boxes[i].height * not(diry) - dots[j].y);
+				}
+				past += paststep;
+				ball.x += paststep * ball.dirx;
+				ball.y += paststep * (2 * diry - 1);
+				if (j < 9) {
+					ball.dirx = -ball.dirx;
+				}
+				else {
+					diry = not(diry);
+				}
+				boxes[i].x = boxes[i].y = -200;
+				score++;
+				break;
+			}
+		}
+		i -= 21 * (1 / (3 - level));
+	}
+	if (hita == false) {
+		ball.x += (ball.speed - past) * ball.dirx;
+		ball.y += (ball.speed - past) * (2 * diry - 1);
+		past = ball.speed;
+	}
+	/*if (ball.y - ball.speed <= hity && diry == false || ball.y + ball.height + ball.speed >= hity && diry == true) {
 		hita = true;
 		int paststep = (ball.y - hity) * (not(diry) * 2 - 1) - ball.height * diry;
 		past += paststep;
@@ -281,8 +320,35 @@ void trace() {
 	}
 	if (hita == false) {
 		past += ball.speed + ball.speed * (past == 0);
-	}
+	}*/
 }
+
+void collWalls() {
+		for (int j = 0; j < 19; j++) {
+			if (dots[j].x + ball.speed >= window.width &&
+				dots[j].x - ball.speed <= 0 &&
+				dots[j].y + ball.speed >= window.height &&
+				dots[j].y - ball.speed <= 0) {
+				int paststep = 0;
+				if (j < 9) {
+					paststep = ball.speed - abs(dots[j].x - window.width * (ball.dirx == 1));
+				}
+				else {
+					paststep = ball.speed - abs(dots[j].y - window.height * (diry == true));
+				}
+				past += paststep;
+				ball.x += paststep * ball.dirx;
+				ball.y += paststep * (2 * diry - 1);
+				if (j < 9) {
+					ball.dirx = -ball.dirx;
+				}
+				else {
+					diry = not(diry);
+				}
+				break;
+			}
+		}
+	}
 
 void racketMove() {
 	if (GetAsyncKeyState('A') && racket.x > 0) {
@@ -314,17 +380,20 @@ void triggerPoints() {
 	trigger1y = ball.y + ball.height * diry;
 	trigger2y = ball.y + ball.height * not(diry);
 	for (int i = 0; i < boxesInL1; i++) {
-		if (trigger1x + ball.speed >= boxes[i].x && trigger1x - ball.speed <= boxes[i].x + boxes[i].width && trigger1y + ball.speed >= boxes[i].y && trigger1y - ball.speed <= boxes[i].y + boxes[i].height) {
+		if (trigger1x + ball.speed >= boxes[i].x &&
+			trigger1x - ball.speed <= boxes[i].x + boxes[i].width &&
+			trigger1y + ball.speed >= boxes[i].y &&
+			trigger1y - ball.speed <= boxes[i].y + boxes[i].height) {
 			hitd = i;
 			hity = trigger1y;
 			hitx = trigger1x;
-			trace();
+			collBoxes();
 		}
 		if (trigger2x + ball.speed >= boxes[i].x && trigger2x - ball.speed <= boxes[i].x + boxes[i].width && trigger2y + ball.speed >= boxes[i].y && trigger2y - ball.speed <= boxes[i].y + boxes[i].height) {
 			hitd = i;
 			hity = trigger2y;
 			hitx = trigger2x;
-			trace();
+			collBoxes();
 		}
 	}
 }
@@ -368,6 +437,23 @@ void rayConstr() {
 	}
 }
 
+void sphere() {
+	float poluhorda = sqrt(pow(ball.width / 2, 2) / 2);
+	dots[0].y = ball.y + ball.height / 2 - poluhorda * (2 * diry - 1);
+	dots[0].x = ball.x + ball.width / 2 + poluhorda * ball.dirx;
+	for (int i = 1; i < 10; i++) {
+		dots[i].y = dots[i - 1].y + poluhorda / 5 * (2 * diry - 1) + ball.speed * (2 * diry - 1);
+		dots[i].x = ball.x + ball.width / 2 + sqrt(pow(ball.width / 2, 2) - pow(abs(ball.y + ball.height / 2 - dots[i].y), 2)) * ball.dirx + ball.speed * ball.dirx;
+	}
+	for (int i = 10; i < 19; i++) {
+		dots[i].x = dots[i - 1].x - poluhorda / 5 * ball.dirx + ball.speed * ball.dirx;
+		dots[i].y = ball.y + ball.height / 2 + sqrt(pow(ball.height / 2, 2) - pow(abs(ball.x + ball.width / 2 - dots[i].x), 2)) * (2 * diry - 1) + ball.speed * (2 * diry - 1);
+	}
+	for (int i = 0; i < 19; i++) {
+		ShowBitmap(window.context, dots[i].x, dots[i].y, 6, 6, ball.hBitmap);
+	}
+}
+
 std::string A;
 std::string B;
 
@@ -392,12 +478,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		while (past < ball.speed) {
 			//collWall();
 			//collBox();
-			trace();
+			sphere();
+			collBoxes();
+			collWalls();
 			collRacket();
 			//triggerPoints();
-			rayConstr();
+			//rayConstr();
 		}
-		ballMove();
+		//ballMove();
 		past = 0;
 
 		if (level == 1) {
